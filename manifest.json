@@ -1,0 +1,140 @@
+{
+  "manifest_version": 3,
+  "name": "DocUnchain - Clean Document & PDF Exporter",
+  "version": "1.0.0",
+  "description": "Mở khoá nội dung và trích xuất tài liệu học tập PDF chất lượng gốc độ nét cao từ Studocu & Scribd không cần tài khoản VIP.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "cookies",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "*://*.studocu.com/*",
+    "*://doc-assets.studocu.com/*",
+    "*://*.studeersnel.nl/*",
+    "*://*.studocu.vn/*",
+    "*://*.studocu.id/*",
+    "*://*.studocu.es/*",
+    "*://*.studocu.it/*",
+    "*://*.studocu.de/*",
+    "*://*.studocu.fr/*",
+    "*://*.studocu.pl/*",
+    "*://*.studocu.pt/*",
+    "*://*.studocu.ro/*",
+    "*://*.studocu.cl/*",
+    "*://*.studocu.sg/*",
+    "*://*.studocu.ca/*",
+    "*://*.studocu.be/*",
+    "*://*.studocu.ch/*",
+    "*://*.studocu.at/*",
+    "*://*.studocu.ph/*",
+    "*://*.studocu.pk/*",
+    "*://*.studocu.ng/*",
+    "*://*.studocu.in/*",
+    "*://*.studocu.nl/*",
+    "*://*.studocu.net/*",
+    "*://*.studocu.org/*",
+    "*://*.studocu.co/*",
+    "*://*.studocu.co.uk/*",
+    "*://*.studocu.co.id/*",
+    "*://*.studocu.co.za/*",
+    "*://*.studocu.com.br/*",
+    "*://*.studocu.com.mx/*",
+    "*://*.studocu.com.ar/*",
+    "*://*.studocu.com.au/*",
+    "*://*.studocu.com.pe/*",
+    "*://*.studocu.com.co/*",
+    "*://*.studocu.com.ph/*",
+    "*://*.studocu.com.my/*",
+    "*://*.studocu.com.ng/*",
+    "*://*.studocu.com.pk/*",
+    "*://*.studocu.com.tr/*",
+    "*://*.scribd.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "studocu_rules",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.studocu.com/*",
+        "*://*.studeersnel.nl/*",
+        "*://*.studocu.vn/*",
+        "*://*.studocu.id/*",
+        "*://*.studocu.es/*",
+        "*://*.studocu.it/*",
+        "*://*.studocu.de/*",
+        "*://*.studocu.fr/*",
+        "*://*.studocu.pl/*",
+        "*://*.studocu.pt/*",
+        "*://*.studocu.ro/*",
+        "*://*.studocu.cl/*",
+        "*://*.studocu.sg/*",
+        "*://*.studocu.ca/*",
+        "*://*.studocu.be/*",
+        "*://*.studocu.ch/*",
+        "*://*.studocu.at/*",
+        "*://*.studocu.ph/*",
+        "*://*.studocu.pk/*",
+        "*://*.studocu.ng/*",
+        "*://*.studocu.in/*",
+        "*://*.studocu.nl/*",
+        "*://*.studocu.net/*",
+        "*://*.studocu.org/*",
+        "*://*.studocu.co/*",
+        "*://*.studocu.co.uk/*",
+        "*://*.studocu.co.id/*",
+        "*://*.studocu.co.za/*",
+        "*://*.studocu.com.br/*",
+        "*://*.studocu.com.mx/*",
+        "*://*.studocu.com.ar/*",
+        "*://*.studocu.com.au/*",
+        "*://*.studocu.com.pe/*",
+        "*://*.studocu.com.co/*",
+        "*://*.studocu.com.ph/*",
+        "*://*.studocu.com.my/*",
+        "*://*.studocu.com.ng/*",
+        "*://*.studocu.com.pk/*",
+        "*://*.studocu.com.tr/*"
+      ],
+      "css": ["content/content.css"],
+      "js": ["content/content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://*.scribd.com/document/*",
+        "*://*.scribd.com/doc/*",
+        "*://*.scribd.com/embeds/*",
+        "*://*.scribd.com/embed/*"
+      ],
+      "css": ["content/scribd.css"],
+      "js": ["content/scribd.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
