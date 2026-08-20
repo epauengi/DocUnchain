@@ -194,7 +194,7 @@
       `;
       overlay.innerHTML = `
         <div style="background: rgba(18, 24, 38, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 26px; width: 340px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.7);">
-          <div style="font-size: 15px; font-weight: 700; color: #34d399; margin-bottom: 6px; letter-spacing: -0.01em;">PassScribd Downloader</div>
+          <div style="font-size: 15px; font-weight: 700; color: #34d399; margin-bottom: 6px; letter-spacing: -0.01em;">DocUnchain</div>
           <div style="font-size: 12.5px; color: #94a3b8; margin-bottom: 16px;" id="sd-status">Đang khởi tạo...</div>
           <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
             <div id="sd-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); box-shadow: 0 0 10px rgba(52, 211, 153, 0.5); transition: width 0.2s;"></div>
