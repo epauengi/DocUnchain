@@ -71,7 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
     siteLabel.textContent = 'Đang xoá cookie & tải lại trang...';
     try {
       const resp = await chrome.runtime.sendMessage({ action: 'CLEAR_COOKIES' });
-      siteLabel.textContent = `Đã xoá ${resp ? resp.count : 0} cookies. Đang tải lại...`;
+      if (!resp || !resp.ok) {
+        siteLabel.textContent = 'Lỗi: ' + (resp && resp.error ? resp.error : 'Không thể xoá cookie.');
+        return;
+      }
+      siteLabel.textContent = `Đã xoá ${resp.count} cookies. Đang tải lại...`;
       setTimeout(() => {
         chrome.tabs.reload(tab.id);
         window.close();

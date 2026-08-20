@@ -11,17 +11,18 @@
     return "[class*='page']";
   }
 
-  // 2. Đo kích thước trang chính xác
+  // 2. Đo kích thước layout gốc, không lấy kích thước đã transform của viewer.
   function detectPaperSize() {
-    const candidates = ['.outer_page', '.newpage', '.outer_page_container', "[class*='page']"];
+    const candidates = ['.outer_page', '.newpage', '.outer_page_container'];
     for (const selector of candidates) {
       const el = document.querySelector(selector);
       if (!el) continue;
-      const rect = el.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
+      const width = el.offsetWidth;
+      const height = el.offsetHeight;
+      if (width > 0 && height > 0) {
         return {
-          widthInches: (rect.width / 96).toFixed(3),
-          heightInches: (rect.height / 96).toFixed(3)
+          widthInches: (width / 96).toFixed(3),
+          heightInches: (height / 96).toFixed(3)
         };
       }
     }
@@ -72,6 +73,8 @@
       [data-scribd-print-root="true"],
       .document_scroller {
         position: static !important;
+        inset: auto !important;
+        transform: none !important;
         overflow: visible !important;
         height: auto !important;
         max-height: none !important;
@@ -110,6 +113,8 @@
 
         .document_scroller {
           position: static !important;
+          inset: auto !important;
+          transform: none !important;
           overflow: visible !important;
           height: auto !important;
           max-height: none !important;
@@ -120,6 +125,8 @@
 
         .outer_page_container,
         .newpage_container {
+          inset: auto !important;
+          transform: none !important;
           margin: 0 !important;
           padding: 0 !important;
           height: auto !important;
@@ -129,7 +136,12 @@
 
         .outer_page,
         .newpage {
-          margin: 0 auto !important;
+          position: relative !important;
+          inset: auto !important;
+          left: 0 !important;
+          transform: none !important;
+          transform-origin: top left !important;
+          margin: 0 !important;
           padding: 0 !important;
           box-shadow: none !important;
           background: #ffffff !important;
@@ -156,6 +168,11 @@
     document.querySelectorAll('.document_scroller').forEach((scroller) => {
       scroller.setAttribute('data-scribd-print-root', 'true');
       scroller.style.position = 'static';
+      scroller.style.top = 'auto';
+      scroller.style.right = 'auto';
+      scroller.style.bottom = 'auto';
+      scroller.style.left = 'auto';
+      scroller.style.transform = 'none';
       scroller.style.overflow = 'visible';
       scroller.style.maxHeight = 'none';
       scroller.style.height = 'auto';
@@ -224,13 +241,13 @@
   async function runEmbedDownloader() {
     showOverlay('Đang kết nối tài liệu...', 5);
 
-    const paperSize = detectPaperSize();
     const count = await scrollAndLoadPages();
     if (count === 0) {
       if (overlay) overlay.remove();
       return;
     }
 
+    const paperSize = detectPaperSize();
     updateOverlay('Đang chuẩn hoá layout trang in...', 90);
     applyPrintStyles(paperSize);
 

@@ -10,9 +10,9 @@
 
 - **Unblur content** on Studocu, revealing premium-locked text
 - **Export original-quality PDFs** via the browser print dialog, preserving vector fonts
-- **Bypass view limits** by automatically clearing Studocu session cookies
+- **Reset Studocu sessions** on demand while retaining Cloudflare verification cookies
 - **Scribd support** to download PDFs without signing in
-- **Cloudflare handling** that auto-pauses/resumes the bypass when a challenge is detected
+- **Cloudflare-compatible** normal browsing with native browser cookies
 - **UI cleanup** removing banners, ads, and premium overlays
 
 ## Installation
@@ -39,8 +39,7 @@ Open a Scribd document page, click the extension icon, then press **Tải PDF Sc
 
 ```
 popup/          Popup UI (site detection, command dispatch)
-background.js   Service worker (DNR rules, cookie clearing, Cloudflare handling)
-rules.json      DeclarativeNetRequest rule (strip cookie header)
+background.js   Service worker (Cloudflare-safe cookie clearing)
 content/
   content.js    Studocu engine (unblur, text/image injection, PDF export)
   content.css   CSS for blur removal and hiding extra elements
@@ -51,9 +50,12 @@ icons/          Extension icons (16, 48, 128px)
 
 ### How it works
 
-1. **DNR rule** strips the `Cookie` header on all requests to Studocu, creating an anonymous session on every page load (resets the view quota)
-2. **Content script** parses `__NEXT_DATA__` to get the `objectKey`, fetches text layers from `doc-assets.studocu.com`, and injects them into the DOM
-3. **PDF export** clones all pages into an overlay, embeds images as data URIs, computes the A4 scale, then calls `window.print()`
+1. **Normal navigation** uses native browser cookies, so Cloudflare verification cookies work normally.
+2. **Reset phiên Studocu** removes ordinary Studocu cookies through the Cookies API while preserving `cf_*`, `__cf*`, and `_cfuvid` cookies, then reloads the current tab.
+3. **Content script** parses `__NEXT_DATA__` to get the `objectKey`, fetches text layers from `doc-assets.studocu.com`, and injects them into the DOM.
+4. **PDF export** clones all pages into an overlay, embeds images as data URIs, computes the A4 scale, then calls `window.print()`.
+
+Cookie-header stripping is deliberately not used: Chrome MV3 cannot retain only `cf_clearance` while removing other cookies from a request.
 
 ## Permissions
 
@@ -62,8 +64,7 @@ icons/          Extension icons (16, 48, 128px)
 | `activeTab` | Send messages to the active tab |
 | `scripting` | Inject content scripts |
 | `downloads` | Support file downloads |
-| `cookies` | Clear Studocu cookies to reset the session |
-| `declarativeNetRequest` | Strip cookie header (bypass) |
+| `cookies` | Reset Studocu cookies while retaining Cloudflare verification cookies |
 
 ## Credits
 

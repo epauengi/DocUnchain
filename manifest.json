@@ -7,8 +7,7 @@
     "activeTab",
     "scripting",
     "downloads",
-    "cookies",
-    "declarativeNetRequest"
+    "cookies"
   ],
   "host_permissions": [
     "*://*.studocu.com/*",
@@ -55,15 +54,6 @@
   ],
   "background": {
     "service_worker": "background.js"
-  },
-  "declarative_net_request": {
-    "rule_resources": [
-      {
-        "id": "studocu_rules",
-        "enabled": true,
-        "path": "rules.json"
-      }
-    ]
   },
   "action": {
     "default_popup": "popup/popup.html",
