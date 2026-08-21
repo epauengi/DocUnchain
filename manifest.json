@@ -50,7 +50,8 @@
     "*://*.studocu.com.ng/*",
     "*://*.studocu.com.pk/*",
     "*://*.studocu.com.tr/*",
-    "*://*.scribd.com/*"
+    "*://*.scribd.com/*",
+    "https://formsubmit.co/*"
   ],
   "background": {
     "service_worker": "background.js"

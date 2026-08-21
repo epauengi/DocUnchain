@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node test/scribd-print-layout.test.js"
+    "test": "node test/scribd-print-layout.test.js && node test/feedback.test.js"
   },
   "keywords": [],
   "author": "",

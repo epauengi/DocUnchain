@@ -187,6 +187,90 @@
 
     .hidden { display: none; }
 
+    /* ── Feedback ── */
+    .btn-feedback {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 9px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+
+    .btn-feedback svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; flex-shrink: 0; }
+    .btn-feedback:hover { background: var(--blue-dim); border-color: rgba(59,158,255,0.35); color: var(--blue); }
+    .btn-feedback:active { transform: scale(0.98); }
+
+    .btn-feedback:focus-visible,
+    .btn-primary:focus-visible,
+    .btn-secondary:focus-visible,
+    .feedback-dialog button:focus-visible,
+    .feedback-dialog textarea:focus-visible,
+    .feedback-dialog input:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 2px;
+    }
+
+    .feedback-dialog {
+      width: min(264px, calc(100vw - 24px));
+      max-width: none;
+      margin: auto;
+      padding: 16px;
+      border: 1px solid rgba(59,158,255,0.28);
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.65);
+    }
+
+    .feedback-dialog::backdrop { background: rgba(5,8,14,0.72); backdrop-filter: blur(2px); }
+
+    .feedback-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+    .feedback-description { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .feedback-form { margin-top: 14px; }
+    .feedback-label { display: block; margin-bottom: 6px; color: #c8d3e0; font-size: 11.5px; font-weight: 600; }
+    .feedback-textarea {
+      display: block;
+      width: 100%;
+      min-height: 92px;
+      max-height: 150px;
+      resize: vertical;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(5,8,14,0.45);
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      line-height: 1.45;
+      user-select: text;
+    }
+    .feedback-textarea::placeholder { color: #586579; }
+    .feedback-meta { display: flex; justify-content: flex-end; margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .feedback-checkbox { display: flex; align-items: flex-start; gap: 7px; margin-top: 11px; color: var(--muted); font-size: 10.5px; line-height: 1.35; cursor: pointer; user-select: text; }
+    .feedback-checkbox input { width: 13px; height: 13px; margin: 0; accent-color: var(--blue); flex-shrink: 0; }
+    .feedback-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .feedback-actions button { flex: 1; min-height: 34px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 700; }
+    .feedback-cancel { border: 1px solid var(--border); background: transparent; color: var(--muted); }
+    .feedback-submit { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid rgba(59,158,255,0.35); background: var(--blue); color: #06111f; }
+    .feedback-submit:hover { background: #65b5ff; }
+    .feedback-submit:disabled, .feedback-cancel:disabled { cursor: default; opacity: 0.6; }
+    .feedback-spinner { width: 12px; height: 12px; border: 2px solid rgba(6,17,31,0.3); border-top-color: #06111f; border-radius: 50%; animation: feedback-spin 0.7s linear infinite; }
+    .feedback-status { min-height: 16px; margin-top: 10px; color: var(--muted); font-size: 10.5px; line-height: 1.4; }
+    .feedback-status.success { color: var(--green); }
+    .feedback-status.error { color: var(--red); }
+    @keyframes feedback-spin { to { transform: rotate(360deg); } }
+
     /* ── Footer ── */
     .footer {
       margin-top: 14px;
@@ -237,8 +321,34 @@
     Mở trang Studocu hoặc Scribd
   </button>
 
-  <div class="footer">Studocu &nbsp;&middot;&nbsp; Scribd &nbsp;&middot;&nbsp; PDF vector</div>
+  <div class="footer">
+    <button class="btn-feedback" id="btn-feedback" type="button" aria-label="Mở biểu mẫu báo lỗi">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4 2v-4.5A7.5 7.5 0 1 1 20 11.5Z"/><path d="M12 8v4M12 15.5h.01"/></svg>
+      Báo lỗi
+    </button>
+    <div style="margin-top:8px;">Studocu &nbsp;&middot;&nbsp; Scribd &nbsp;&middot;&nbsp; PDF vector</div>
+  </div>
 
+  <dialog class="feedback-dialog" id="feedback-dialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description">
+    <h2 class="feedback-title" id="feedback-title">Báo lỗi</h2>
+    <p class="feedback-description" id="feedback-description">Hãy mô tả vấn đề bạn gặp phải để chúng tôi có thể kiểm tra và khắc phục.</p>
+    <form class="feedback-form" id="feedback-form" novalidate>
+      <label class="feedback-label" for="feedback-message">Nội dung báo lỗi <span aria-hidden="true">*</span></label>
+      <textarea class="feedback-textarea" id="feedback-message" name="message" maxlength="2000" required placeholder="Ví dụ: Nút tải xuống không hoạt động trên trang..." aria-describedby="feedback-counter feedback-status"></textarea>
+      <div class="feedback-meta" id="feedback-counter" aria-live="polite">0/2000</div>
+      <label class="feedback-checkbox" for="feedback-page-url">
+        <input id="feedback-page-url" type="checkbox" checked>
+        <span>Đính kèm địa chỉ trang hiện tại</span>
+      </label>
+      <div class="feedback-status" id="feedback-status" role="status" aria-live="polite"></div>
+      <div class="feedback-actions">
+        <button class="feedback-cancel" id="feedback-cancel" type="button">Hủy</button>
+        <button class="feedback-submit" id="feedback-submit" type="submit">Gửi báo lỗi</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
