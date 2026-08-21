@@ -6,210 +6,305 @@
   <title>DocUnchain</title>
   <style>
     :root {
-      --bg: #0e1117;
-      --surface: #161b26;
-      --border: rgba(255,255,255,0.07);
-      --text: #f0f4f8;
-      --muted: #7a8699;
-      --blue: #3b9eff;
-      --blue-dim: rgba(59,158,255,0.12);
-      --green: #2dd4a0;
-      --green-dim: rgba(45,212,160,0.12);
-      --red: #f87171;
+      --ink: #090d13;
+      --paper: #111925;
+      --raised: #192536;
+      --line: rgba(169, 181, 197, 0.2);
+      --line-strong: rgba(169, 181, 197, 0.34);
+      --text: #f3f6fa;
+      --muted: #a9b5c5;
+      --faint: #718096;
+      --blue: #6db5ff;
+      --blue-deep: #1d6fd4;
+      --mint: #57d6b0;
+      --mint-deep: #126b4f;
+      --danger: #ffa3a3;
+      --focus: #b6d8ff;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { background: var(--ink); }
+
     body {
       width: 296px;
-      background: var(--bg);
+      min-height: 100px;
+      padding: 14px;
+      overflow-x: hidden;
+      background: var(--ink);
       color: var(--text);
+      color-scheme: dark;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       user-select: none;
-      padding: 16px;
     }
 
-    /* ── Header ── */
+    button,
+    textarea,
+    input { font: inherit; }
+
+    button { border: 0; }
+
+    .popup-shell { position: relative; }
+
+    /* Header: a compact instrument label. */
     .header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      margin-bottom: 14px;
+      padding: 2px 1px 13px;
+      border-bottom: 1px solid var(--line);
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
+    .brand { display: flex; align-items: center; gap: 10px; }
 
     .brand-icon {
+      display: grid;
       width: 30px;
       height: 30px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #1a3a5c, #0d2137);
-      border: 1px solid rgba(59,158,255,0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid rgba(109, 181, 255, 0.5);
+      border-radius: 7px;
+      background: var(--raised);
+      color: var(--blue);
+      box-shadow: 3px 3px 0 rgba(109, 181, 255, 0.12);
     }
 
-    .brand-icon svg { width: 15px; height: 15px; fill: var(--blue); }
+    .brand-icon svg { width: 16px; height: 16px; fill: currentColor; }
+
+    .brand-copy { display: grid; gap: 2px; }
 
     .brand-name {
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #fff;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 760;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .brand-tag {
+      color: var(--faint);
+      font-size: 8px;
+      font-weight: 750;
+      letter-spacing: 0.16em;
+      line-height: 1;
+      text-transform: uppercase;
     }
 
     .badge {
-      font-size: 10px;
-      font-weight: 600;
+      padding: 4px 7px 3px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--paper);
       color: var(--muted);
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      padding: 2px 7px;
-      border-radius: 20px;
-      letter-spacing: 0.03em;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      line-height: 1;
     }
 
-    /* ── Site status ── */
+    /* Status card: the single visual signature. */
     .site-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
+      position: relative;
+      display: grid;
+      gap: 9px;
+      min-height: 70px;
+      margin-top: 13px;
+      padding: 11px 12px 12px 14px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--line-strong);
+      border-radius: 5px;
+      background: var(--paper);
     }
+
+    .site-status::after {
+      position: absolute;
+      top: 0;
+      right: 12px;
+      width: 28px;
+      height: 3px;
+      background: var(--line-strong);
+      content: "";
+    }
+
+    .status-kicker {
+      color: var(--faint);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .status-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
 
     .site-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      border: 2px solid rgba(169, 181, 197, 0.28);
       border-radius: 50%;
-      flex-shrink: 0;
-      background: #4a5568;
-      transition: background 0.2s;
+      background: transparent;
+      transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
     }
 
-    .site-dot.studocu { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
-    .site-dot.scribd  { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .site-dot.none    { background: #4a5568; }
+    .site-dot.studocu {
+      border-color: var(--blue);
+      background: var(--blue);
+      box-shadow: 0 0 0 3px rgba(109, 181, 255, 0.12);
+    }
+
+    .site-dot.scribd {
+      border-color: var(--mint);
+      background: var(--mint);
+      box-shadow: 0 0 0 3px rgba(87, 214, 176, 0.12);
+    }
+
+    .site-dot.none { border-color: var(--faint); background: var(--faint); }
 
     .site-label {
-      font-size: 12px;
-      font-weight: 500;
+      min-width: 0;
+      overflow-wrap: anywhere;
       color: var(--muted);
-      line-height: 1.4;
+      font-size: 12px;
+      font-weight: 650;
+      line-height: 1.35;
     }
 
     .site-label.studocu { color: var(--blue); }
-    .site-label.scribd  { color: var(--green); }
+    .site-label.scribd { color: var(--mint); }
 
-    /* ── Primary button ── */
-    .btn-primary {
-      width: 100%;
+    .action-block { margin-top: 12px; }
+
+    .action-label {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-      transition: all 0.15s ease;
-      outline: none;
+      justify-content: space-between;
+      margin: 0 1px 7px;
+      color: var(--faint);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      line-height: 1;
+      text-transform: uppercase;
     }
 
-    .btn-primary svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+    .action-mark { color: var(--line-strong); font-variant-numeric: tabular-nums; }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-feedback {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+    }
+
+    .btn-primary {
+      justify-content: space-between;
+      min-height: 45px;
+      padding: 11px 12px 11px 14px;
+      border: 1px solid transparent;
+      border-radius: 5px;
+      color: #f8fbff;
+      font-size: 12px;
+      font-weight: 780;
+      letter-spacing: 0.01em;
+      text-align: left;
+    }
+
+    .btn-primary svg { width: 16px; height: 16px; flex: 0 0 auto; fill: currentColor; }
+
+    .btn-primary::after {
+      margin-left: auto;
+      color: rgba(255, 255, 255, 0.72);
+      content: "↗";
+      font-size: 15px;
+      font-weight: 500;
+    }
 
     .btn-primary.studocu {
-      background: linear-gradient(135deg, #1d6fd4, #1557b0);
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(29,111,212,0.4);
+      background: var(--blue-deep);
+      border-color: #4b94e9;
+      box-shadow: 4px 4px 0 rgba(109, 181, 255, 0.13);
     }
-    .btn-primary.studocu:hover { background: linear-gradient(135deg, #2478dd, #1a62c0); }
-    .btn-primary.studocu:active { transform: scale(0.98); }
+
+    .btn-primary.studocu:hover { background: #287de0; box-shadow: 5px 5px 0 rgba(109, 181, 255, 0.17); }
 
     .btn-primary.scribd {
-      background: linear-gradient(135deg, #1aab7d, #148a64);
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(26,171,125,0.35);
+      background: var(--mint-deep);
+      border-color: #319d7a;
+      box-shadow: 4px 4px 0 rgba(87, 214, 176, 0.13);
     }
-    .btn-primary.scribd:hover { background: linear-gradient(135deg, #20b888, #18966e); }
-    .btn-primary.scribd:active { transform: scale(0.98); }
+
+    .btn-primary.scribd:hover { background: #17805e; box-shadow: 5px 5px 0 rgba(87, 214, 176, 0.17); }
 
     .btn-primary.disabled {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      justify-content: center;
+      background: var(--paper);
+      border-color: var(--line);
       color: var(--muted);
       cursor: default;
       box-shadow: none;
     }
 
-    /* ── Secondary action (Studocu reset) ── */
+    .btn-primary.disabled::after { display: none; }
+
     .btn-secondary {
-      width: 100%;
-      display: flex;
-      align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 9px 12px;
+      min-height: 40px;
+      gap: 7px;
       margin-top: 8px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
       background: transparent;
       color: var(--muted);
-      cursor: pointer;
-      font-size: 11.5px;
-      font-weight: 500;
-      transition: all 0.15s ease;
-      outline: none;
+      font-size: 11px;
+      font-weight: 650;
     }
 
-    .btn-secondary svg { width: 13px; height: 13px; fill: currentColor; flex-shrink: 0; }
-
-    .btn-secondary:hover {
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(255,255,255,0.14);
-      color: #c8d3e0;
-    }
-
-    .btn-secondary:active { transform: scale(0.98); }
+    .btn-secondary svg { width: 14px; height: 14px; flex: 0 0 auto; fill: currentColor; }
+    .btn-secondary:hover { border-color: var(--line-strong); background: var(--raised); color: var(--text); }
 
     .hidden { display: none; }
 
-    /* ── Feedback ── */
-    .btn-feedback {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 9px;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font: inherit;
-      font-size: 11.5px;
-      font-weight: 600;
-      transition: all 0.15s ease;
+    /* Feedback is secondary to the document action. */
+    .footer {
+      margin-top: 14px;
+      padding-top: 11px;
+      border-top: 1px solid var(--line);
     }
 
-    .btn-feedback svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; flex-shrink: 0; }
-    .btn-feedback:hover { background: var(--blue-dim); border-color: rgba(59,158,255,0.35); color: var(--blue); }
-    .btn-feedback:active { transform: scale(0.98); }
+    .btn-feedback {
+      justify-content: center;
+      min-height: 40px;
+      gap: 7px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--paper);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .btn-feedback svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .btn-feedback:hover { border-color: rgba(109, 181, 255, 0.48); background: rgba(109, 181, 255, 0.1); color: var(--blue); }
+
+    .footer-note {
+      margin-top: 9px;
+      color: var(--faint);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      line-height: 1;
+      text-align: center;
+      text-transform: uppercase;
+    }
 
     .btn-feedback:focus-visible,
     .btn-primary:focus-visible,
@@ -217,130 +312,218 @@
     .feedback-dialog button:focus-visible,
     .feedback-dialog textarea:focus-visible,
     .feedback-dialog input:focus-visible {
-      outline: 2px solid var(--blue);
+      outline: 2px solid var(--focus);
       outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(182, 216, 255, 0.16);
     }
 
+    /* Native feedback dialog. */
     .feedback-dialog {
-      width: min(264px, calc(100vw - 24px));
+      width: min(268px, calc(100vw - 24px));
       max-width: none;
+      max-height: calc(100vh - 24px);
       margin: auto;
-      padding: 16px;
-      border: 1px solid rgba(59,158,255,0.28);
-      border-radius: 12px;
-      background: var(--surface);
+      overflow: auto;
+      padding: 18px;
+      border: 1px solid rgba(109, 181, 255, 0.42);
+      border-radius: 6px;
+      background: var(--paper);
       color: var(--text);
-      box-shadow: 0 18px 45px rgba(0,0,0,0.65);
+      box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.36), 0 22px 50px rgba(0, 0, 0, 0.62);
     }
 
-    .feedback-dialog::backdrop { background: rgba(5,8,14,0.72); backdrop-filter: blur(2px); }
+    .feedback-dialog::backdrop { background: rgba(3, 6, 10, 0.78); backdrop-filter: blur(3px); }
 
-    .feedback-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
-    .feedback-description { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.45; }
-    .feedback-form { margin-top: 14px; }
-    .feedback-label { display: block; margin-bottom: 6px; color: #c8d3e0; font-size: 11.5px; font-weight: 600; }
-    .feedback-textarea {
+    .feedback-title {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 780;
+      letter-spacing: -0.02em;
+    }
+
+    .feedback-description {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .feedback-form { margin-top: 16px; }
+
+    .feedback-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .feedback-textarea,
+    .feedback-message {
       display: block;
       width: 100%;
-      min-height: 92px;
+      min-height: 96px;
       max-height: 150px;
       resize: vertical;
-      padding: 9px 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: rgba(5,8,14,0.45);
+      padding: 10px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      outline: none;
+      background: var(--ink);
       color: var(--text);
-      font: inherit;
       font-size: 12px;
       line-height: 1.45;
       user-select: text;
     }
-    .feedback-textarea::placeholder { color: #586579; }
-    .feedback-meta { display: flex; justify-content: flex-end; margin-top: 4px; color: var(--muted); font-size: 10px; }
-    .feedback-checkbox { display: flex; align-items: flex-start; gap: 7px; margin-top: 11px; color: var(--muted); font-size: 10.5px; line-height: 1.35; cursor: pointer; user-select: text; }
-    .feedback-checkbox input { width: 13px; height: 13px; margin: 0; accent-color: var(--blue); flex-shrink: 0; }
-    .feedback-actions { display: flex; gap: 8px; margin-top: 14px; }
-    .feedback-actions button { flex: 1; min-height: 34px; border-radius: 8px; cursor: pointer; font: inherit; font-size: 11.5px; font-weight: 700; }
-    .feedback-cancel { border: 1px solid var(--border); background: transparent; color: var(--muted); }
-    .feedback-submit { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid rgba(59,158,255,0.35); background: var(--blue); color: #06111f; }
-    .feedback-submit:hover { background: #65b5ff; }
-    .feedback-submit:disabled, .feedback-cancel:disabled { cursor: default; opacity: 0.6; }
-    .feedback-spinner { width: 12px; height: 12px; border: 2px solid rgba(6,17,31,0.3); border-top-color: #06111f; border-radius: 50%; animation: feedback-spin 0.7s linear infinite; }
-    .feedback-status { min-height: 16px; margin-top: 10px; color: var(--muted); font-size: 10.5px; line-height: 1.4; }
-    .feedback-status.success { color: var(--green); }
-    .feedback-status.error { color: var(--red); }
+
+    .feedback-textarea:hover { border-color: rgba(169, 181, 197, 0.52); }
+    .feedback-textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(109, 181, 255, 0.13); }
+    .feedback-textarea::placeholder { color: var(--faint); }
+
+    .feedback-meta {
+      min-height: 14px;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .feedback-checkbox {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      gap: 8px;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.35;
+      cursor: pointer;
+      user-select: text;
+    }
+
+    .feedback-checkbox input { width: 16px; height: 16px; flex: 0 0 auto; accent-color: var(--blue); }
+
+    .feedback-status {
+      min-height: 30px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.4;
+    }
+
+    .feedback-status.success { color: var(--mint); }
+    .feedback-status.error { color: var(--danger); }
+
+    .feedback-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+    .feedback-actions button {
+      min-height: 44px;
+      flex: 1;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 750;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease, transform 120ms ease;
+    }
+
+    .feedback-cancel { border: 1px solid var(--line); background: transparent; color: var(--muted); }
+    .feedback-cancel:hover { border-color: var(--line-strong); background: var(--raised); color: var(--text); }
+    .feedback-submit { border: 1px solid #9bcaff; background: var(--blue); color: #071321; }
+    .feedback-submit:hover { background: #86c1ff; }
+    .feedback-submit:disabled, .feedback-cancel:disabled { cursor: default; opacity: 0.52; }
+
+    .feedback-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(7, 19, 33, 0.28);
+      border-top-color: #071321;
+      border-radius: 50%;
+      animation: feedback-spin 700ms linear infinite;
+    }
+
     @keyframes feedback-spin { to { transform: rotate(360deg); } }
 
-    /* ── Footer ── */
-    .footer {
-      margin-top: 14px;
-      padding-top: 11px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      text-align: center;
-      font-size: 10px;
-      color: #3d4a5c;
-      letter-spacing: 0.04em;
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+
+      .btn-primary:active,
+      .btn-secondary:active,
+      .btn-feedback:active,
+      .feedback-submit:active,
+      .feedback-cancel:active { transform: none; }
     }
   </style>
 </head>
 <body>
-
-  <div class="header">
-    <div class="brand">
-      <div class="brand-icon">
-        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+  <main class="popup-shell">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6V3zm8 1.5V7h2.5L14 4.5zM8 10h8V8.5H8V10zm0 3h8v-1.5H8V13zm0 3h5v-1.5H8V16z"/></svg>
+        </div>
+        <div class="brand-copy">
+          <span class="brand-name">DocUnchain</span>
+          <span class="brand-tag">Document instrument</span>
+        </div>
       </div>
-      <span class="brand-name">DocUnchain</span>
-    </div>
-    <span class="badge">v1.0</span>
-  </div>
+      <span class="badge">v1.0</span>
+    </header>
 
-  <div class="site-status">
-    <div class="site-dot none" id="site-dot"></div>
-    <span class="site-label" id="site-label">Đang kiểm tra trang...</span>
-  </div>
+    <section class="site-status" aria-label="Trạng thái trang hiện tại">
+      <span class="status-kicker">Active page</span>
+      <div class="status-line">
+        <div class="site-dot none" id="site-dot"></div>
+        <span class="site-label" id="site-label" role="status" aria-live="polite" aria-atomic="true">Đang kiểm tra trang...</span>
+      </div>
+    </section>
 
-  <!-- Studocu -->
-  <button class="btn-primary studocu hidden" id="btn-studocu">
-    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-    Tải PDF Studocu
-  </button>
-  <button class="btn-secondary hidden" id="btn-reset">
-    <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-    Reset phiên Studocu
-  </button>
+    <section class="action-block" aria-label="Thao tác tài liệu">
+      <div class="action-label"><span>Available action</span><span class="action-mark">01</span></div>
 
-  <!-- Scribd -->
-  <button class="btn-primary scribd hidden" id="btn-scribd">
-    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-    Tải PDF Scribd
-  </button>
+      <button class="btn-primary studocu hidden" id="btn-studocu" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Tải PDF Studocu
+      </button>
+      <button class="btn-secondary hidden" id="btn-reset" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        Reset phiên Studocu
+      </button>
+      <button class="btn-primary scribd hidden" id="btn-scribd" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Tải PDF Scribd
+      </button>
+      <button class="btn-primary disabled hidden" id="btn-none" type="button" disabled>
+        Mở trang Studocu hoặc Scribd
+      </button>
+    </section>
 
-  <!-- Not supported -->
-  <button class="btn-primary disabled hidden" id="btn-none" disabled>
-    Mở trang Studocu hoặc Scribd
-  </button>
-
-  <div class="footer">
-    <button class="btn-feedback" id="btn-feedback" type="button" aria-label="Mở biểu mẫu báo lỗi">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4 2v-4.5A7.5 7.5 0 1 1 20 11.5Z"/><path d="M12 8v4M12 15.5h.01"/></svg>
-      Báo lỗi
-    </button>
-    <div style="margin-top:8px;">Studocu &nbsp;&middot;&nbsp; Scribd &nbsp;&middot;&nbsp; PDF vector</div>
-  </div>
+    <footer class="footer">
+      <button class="btn-feedback" id="btn-feedback" type="button" aria-label="Mở biểu mẫu báo lỗi">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4 2v-4.5A7.5 7.5 0 1 1 20 11.5Z"/><path d="M12 8v4M12 15.5h.01"/></svg>
+        Báo lỗi
+      </button>
+      <div class="footer-note">Studocu · Scribd · PDF vector</div>
+    </footer>
+  </main>
 
   <dialog class="feedback-dialog" id="feedback-dialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description">
     <h2 class="feedback-title" id="feedback-title">Báo lỗi</h2>
     <p class="feedback-description" id="feedback-description">Hãy mô tả vấn đề bạn gặp phải để chúng tôi có thể kiểm tra và khắc phục.</p>
     <form class="feedback-form" id="feedback-form" novalidate>
       <label class="feedback-label" for="feedback-message">Nội dung báo lỗi <span aria-hidden="true">*</span></label>
-      <textarea class="feedback-textarea" id="feedback-message" name="message" maxlength="2000" required placeholder="Ví dụ: Nút tải xuống không hoạt động trên trang..." aria-describedby="feedback-counter feedback-status"></textarea>
-      <div class="feedback-meta" id="feedback-counter" aria-live="polite">0/2000</div>
+      <textarea class="feedback-textarea feedback-message" id="feedback-message" name="message" maxlength="2000" required placeholder="Ví dụ: Nút tải xuống không hoạt động trên trang..." aria-describedby="feedback-counter feedback-status"></textarea>
+      <div class="feedback-meta feedback-counter" id="feedback-counter" aria-live="polite">0/2000</div>
       <label class="feedback-checkbox" for="feedback-page-url">
-        <input id="feedback-page-url" type="checkbox" checked>
+        <input class="feedback-page-url" id="feedback-page-url" type="checkbox" checked>
         <span>Đính kèm địa chỉ trang hiện tại</span>
       </label>
-      <div class="feedback-status" id="feedback-status" role="status" aria-live="polite"></div>
+      <div class="feedback-status" id="feedback-status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="feedback-actions">
         <button class="feedback-cancel" id="feedback-cancel" type="button">Hủy</button>
         <button class="feedback-submit" id="feedback-submit" type="submit">Gửi báo lỗi</button>
