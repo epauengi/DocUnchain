@@ -1,6 +1,6 @@
 # DocUnchain
 
-> Unlock and export study documents from Studocu & Scribd as high-quality PDFs, no VIP account required.
+> Unlock and export study documents from Studocu, Scribd & Google Drive as high-quality PDFs, no VIP account required.
 
 ![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
 ![Version](https://img.shields.io/badge/version-1.0.0-green?style=flat-square)
@@ -12,6 +12,7 @@
 - **Export original-quality PDFs** via the browser print dialog, preserving vector fonts
 - **Reset Studocu sessions** on demand while retaining Cloudflare verification cookies
 - **Scribd support** to download PDFs without signing in
+- **Google Drive support** to export view-only (download-disabled) files: auto-scrolls the whole preview, captures every rendered page at native resolution, and streams them into a locally bundled jsPDF
 - **Cloudflare-compatible** normal browsing with native browser cookies
 - **UI cleanup** removing banners, ads, and premium overlays
 
@@ -34,6 +35,10 @@ If you hit a view limit, use the **Reset phiên Studocu** button to clear cookie
 ### Scribd
 
 Open a Scribd document page, click the extension icon, then press **Tải PDF Scribd**. The extension navigates to the embed page and renders the PDF automatically.
+
+### Google Drive (View-Only)
+
+Open the file preview on Drive (`https://drive.google.com/file/d/.../view`), click **Tải PDF Google Drive** in the popup or the floating button on the page. The engine auto-scrolls through every page, converts each page image immediately (before Drive revokes its blob URL), and saves a multi-page PDF named after the file. No manual scrolling needed.
 
 ## Architecture
 
@@ -65,6 +70,8 @@ Cookie-header stripping is deliberately not used: Chrome MV3 cannot retain only 
 | `scripting` | Inject content scripts |
 | `downloads` | Support file downloads |
 | `cookies` | Reset Studocu cookies while retaining Cloudflare verification cookies |
+
+Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `drive.google.com`, and regional Studocu mirrors listed in `manifest.json`.
 
 ## Credits
 

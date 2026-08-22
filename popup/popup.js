@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const siteLabel = document.getElementById('site-label');
   const btnStudocu = document.getElementById('btn-studocu');
   const btnScribd = document.getElementById('btn-scribd');
+  const btnDrive = document.getElementById('btn-drive');
   const btnReset = document.getElementById('btn-reset');
   const btnNone = document.getElementById('btn-none');
   const feedbackButton = document.getElementById('btn-feedback');
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const hostname = new URL(url).hostname;
       if (hostname.includes('studocu') || hostname.includes('studeersnel')) return 'studocu';
       if (hostname.includes('scribd')) return 'scribd';
+      if (hostname === 'drive.google.com') return 'drive';
       return null;
     } catch (e) {
       return null;
@@ -51,8 +53,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (site === 'scribd') {
       siteLabel.textContent = 'Scribd đã sẵn sàng';
       btnScribd.classList.remove('hidden');
+    } else if (site === 'drive') {
+      siteLabel.textContent = 'Google Drive đã sẵn sàng';
+      btnDrive.classList.remove('hidden');
     } else {
-      siteLabel.textContent = 'Mở tài liệu Studocu hoặc Scribd để sử dụng';
+      siteLabel.textContent = 'Mở tài liệu Studocu, Scribd hoặc Drive để sử dụng';
       btnNone.classList.remove('hidden');
     }
   }
@@ -299,6 +304,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Tải PDF (Scribd)
   btnScribd.addEventListener('click', async () => {
+    const tab = await getActiveTab();
+    if (!tab) return;
+    siteLabel.textContent = 'Đang kết xuất PDF...';
+    chrome.tabs.sendMessage(tab.id, { action: 'START_DOWNLOAD' }, () => {
+      window.close();
+    });
+  });
+
+  // Tải PDF (Google Drive View-Only)
+  btnDrive.addEventListener('click', async () => {
     const tab = await getActiveTab();
     if (!tab) return;
     siteLabel.textContent = 'Đang kết xuất PDF...';

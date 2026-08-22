@@ -1,0 +1,138 @@
+/* ============================================================
+   DocUnchain - Google Drive View-Only Downloader styles
+   ============================================================ */
+
+.gd-dl-button {
+  position: fixed;
+  right: 22px;
+  bottom: 26px;
+  z-index: 2147483000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 1px solid rgba(218, 233, 255, 0.6);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4285f4 0%, #1a63d8 100%);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 10px 28px -10px rgba(26, 99, 216, 0.85);
+  transition: transform 140ms ease, filter 160ms ease, box-shadow 180ms ease;
+}
+
+.gd-dl-button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: currentColor;
+}
+
+.gd-dl-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 14px 32px -10px rgba(59, 130, 246, 0.95);
+}
+
+.gd-dl-button:active {
+  transform: translateY(1px);
+  filter: brightness(0.97);
+}
+
+.gd-dl-button.gd-hidden {
+  display: none !important;
+}
+
+#gd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(13, 22, 36, 0.94);
+  color: #f8fafc;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+#gd-overlay .gd-card {
+  width: 340px;
+  padding: 26px;
+  text-align: center;
+  border: 1px solid rgba(138, 180, 248, 0.3);
+  border-radius: 12px;
+  background: rgba(15, 25, 41, 0.96);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+#gd-overlay .gd-brand {
+  margin-bottom: 6px;
+  color: #8ab4f8;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+#gd-overlay .gd-status {
+  margin-bottom: 16px;
+  min-height: 17px;
+  overflow-wrap: anywhere;
+  color: #9aa8bd;
+  font-size: 12.5px;
+}
+
+#gd-overlay .gd-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#gd-overlay .gd-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #4285f4, #8ab4f8);
+  box-shadow: 0 0 10px rgba(138, 180, 248, 0.55);
+  transition: width 0.2s ease;
+}
+
+#gd-overlay .gd-track.gd-indeterminate .gd-fill {
+  width: 34%;
+  animation: gd-slide 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes gd-slide {
+  from { margin-left: 0%; }
+  to { margin-left: 66%; }
+}
+
+#gd-overlay .gd-actions {
+  margin-top: 18px;
+}
+
+#gd-overlay .gd-cancel {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(154, 168, 189, 0.35);
+  border-radius: 6px;
+  background: transparent;
+  color: #c7d2e2;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+#gd-overlay .gd-cancel:hover {
+  background: rgba(154, 168, 189, 0.14);
+  color: #ffffff;
+}
