@@ -3,7 +3,7 @@
 > Unlock and export study documents from Studocu, Scribd & Google Drive as high-quality PDFs, no VIP account required.
 
 ![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
-![Version](https://img.shields.io/badge/version-1.0.0-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.1.1-green?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
 
 ## Features
