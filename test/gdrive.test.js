@@ -8,7 +8,7 @@ const popupHtml = fs.readFileSync('popup/popup.html', 'utf8');
 const css = fs.readFileSync('content/gdrive.css', 'utf8');
 
 // Manifest wiring
-assert.match(manifest.version, /^1\.1\./);
+assert.match(manifest.version, /^1\.2\./);
 assert.ok(manifest.host_permissions.includes('*://drive.google.com/*'));
 const driveEntry = manifest.content_scripts.find((cs) => cs.matches.includes('*://drive.google.com/*'));
 assert.ok(driveEntry, 'Drive content script must be registered');
@@ -24,19 +24,36 @@ assert.match(source, /px_scaling/);
 // Engine: auto-scroll capture (fixes missing pages of the old code)
 assert.match(source, /runCapture/);
 assert.match(source, /scrollIntoView/);
-assert.match(source, /STABLE_ROUNDS/);
 assert.match(source, /MAX_PAGES/);
 // scroller phải là container lớn nhất, không dính filmstrip thumbnail
 assert.match(source, /resolveScroller/);
 assert.match(source, /bestHeight/);
 // chờ trang render qua MutationObserver, có cửa sổ xác nhận trước khi dừng
-assert.match(source, /waitForNew/);
+assert.match(source, /waitForCandidate/);
 assert.match(source, /MutationObserver/);
 
-// Engine: streaming conversion before Drive revokes blob URLs
+// v1.2 chống thiếu trang:
+// - luôn cuộn về ĐẦU tài liệu trước khi quét (không phụ thuộc vị trí đứng)
+assert.match(source, /setScrollTop\(getScroller\(true\), 0\)/);
+// - "own the pixels": fetch blob bytes + createImageBitmap, không đua revoke
+assert.match(source, /fetchBlob/);
+assert.match(source, /createImageBitmap/);
+// - dedupe theo tọa độ slot, không theo blob URL
+assert.match(source, /scanSlots/);
+assert.match(source, /slotKey/);
+assert.match(source, /WeakSet/);
+// - backoff thích ứng tại biên render, không dừng sớm khi mạng chậm
+assert.match(source, /IDLE_BASE_MS/);
+assert.match(source, /2 \*\* \(idle - 1\)/);
+// - lượt quét xác minh trang thiếu + tổng trang đọc từ UI
+assert.match(source, /expectedTotal/);
+assert.match(source, /dedupeOverlaps/);
+// - ghép PDF đúng thứ tự tọa độ
+assert.match(source, /\.sort\(\(a, b\) => \(a\.y - b\.y\)/);
+
+// Engine: capture trước khi Drive revoke blob URLs
 assert.match(source, /startsWith\('blob:'\)/);
-assert.match(source, /seenSrc/, 'dedupe by blob URL');
-assert.match(source, /captureWithRetry/);
+assert.match(source, /captureSlot/);
 assert.match(source, /toDataURL\('image\/jpeg'/);
 assert.match(source, /returnPromise:\s*true/);
 

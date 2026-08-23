@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Drive Mock Harness</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  #toolbar { position: fixed; top: 0; left: 0; right: 0; height: 48px; background: #333; color: #fff; z-index: 10; }
+  #pageno { font: 14px monospace; padding: 14px; }
+  #app { position: absolute; top: 48px; bottom: 0; left: 0; right: 0; overflow-y: auto; background: #eee; }
+  #content { position: relative; }
+  .slot { position: absolute; left: 20px; width: 560px; background: #fff; }
+  .slot img { display: block; width: 100%; }
+  .filmstrip { position: fixed; right: 0; top: 48px; bottom: 0; width: 90px; overflow-y: auto; background: #222; }
+  .filmstrip img { display: block; width: 70px; margin: 6px auto; }
+</style>
+</head>
+<body>
+<div id="toolbar"><div id="pageno">1 / 18</div></div>
+<div id="app"><div id="content"></div></div>
+<div class="filmstrip" id="strip"></div>
+<script>
+window.__errs = [];
+window.addEventListener('error', (e) => {
+  window.__errs.push((e.message || 'resource') + ' @ ' + (e.filename || '') + ':' + (e.lineno || 0));
+});
+
+// ===== Cấu hình mock =====
+const N = 18;                 // tổng số trang
+const PAGE_H = 800;           // chiều cao 1 trang (px layout)
+const NET_DELAY_MS = 800;     // "mạng chậm": trang mới xuất hiện sau khoảng này
+const SABOTAGE_PAGE = 9;      // trang bị revoke blob ngay sau khi mount (đua - có thể thắng)
+const DEAD_PAGE = 14;         // trang blob hỏng vĩnh viễn -> phải cảnh báo thiếu
+
+const app = document.getElementById('app');
+const content = document.getElementById('content');
+const strip = document.getElementById('strip');
+content.style.height = (N * PAGE_H) + 'px';
+
+const mounted = new Map();    // pageNo -> {img, url, slotEl, stripImg}
+
+function makePageBlob(pageNo) {
+  const c = document.createElement('canvas');
+  c.width = 1120; c.height = 1600;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.fillStyle = 'hsl(' + (pageNo * 37 % 360) + ', 70%, 88%)';
+  ctx.fillRect(0, 0, c.width, 120);
+  ctx.fillStyle = '#000';
+  ctx.font = 'bold 220px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(String(pageNo), c.width / 2, c.height / 2);
+  return new Promise((res) => c.toBlob(res, 'image/jpeg', 0.9));
+}
+
+async function mountPage(pageNo) {
+  if (mounted.has(pageNo)) return;
+  mounted.set(pageNo, 'pending');
+  const blob = await makePageBlob(pageNo);   // simulated network latency
+  if (!mounted.has(pageNo) || mounted.get(pageNo) !== 'pending') return;
+  const url = URL.createObjectURL(blob);
+  const top = (pageNo - 1) * PAGE_H;
+
+  const slotEl = document.createElement('div');
+  slotEl.className = 'slot';
+  slotEl.style.top = top + 'px';
+  slotEl.style.height = PAGE_H + 'px';
+  const img = document.createElement('img');
+  img.src = url;
+  slotEl.appendChild(img);
+  content.appendChild(slotEl);
+
+  const stripImg = document.createElement('img');
+  stripImg.src = url; // filmstrip dùng CHUNG blob -> phải không bị nhầm là trang
+  stripImg.style.height = '90px';
+  strip.appendChild(stripImg);
+
+  mounted.set(pageNo, { img, url, slotEl, stripImg });
+  if (pageNo === SABOTAGE_PAGE) {
+    // Drive thu hồi blob + thay element ngay sau khi mount (đua revoke)
+    setTimeout(() => {
+      const m = mounted.get(pageNo);
+      if (!m || m === 'pending') return;
+      URL.revokeObjectURL(m.url);
+      const fresh = document.createElement('img');
+      fresh.src = m.url; // broken on purpose
+      m.img.replaceWith(fresh);
+      m.img = fresh;
+    }, 60);
+  }
+  if (pageNo === DEAD_PAGE) {
+    // Blob chết ngay lập tức, mọi lần mount lại đều hỏng -> không thể capture
+    const m = mounted.get(pageNo);
+    URL.revokeObjectURL(m.url);
+    const fresh = document.createElement('img');
+    fresh.src = m.url;
+    m.img.replaceWith(fresh);
+    m.img = fresh;
+  }
+}
+
+function unmountPage(pageNo) {
+  const m = mounted.get(pageNo);
+  if (!m || m === 'pending') return;
+  URL.revokeObjectURL(m.url);
+  m.slotEl.remove();
+  m.stripImg.remove();
+  mounted.delete(pageNo);
+}
+
+let timer = null;
+function simulate() {
+  if (timer) return;
+  timer = setTimeout(async () => {
+    timer = null;
+    const top = app.scrollTop;
+    const first = Math.max(1, Math.floor(top / PAGE_H) - 1);
+    const last = Math.min(N, Math.ceil((top + app.clientHeight) / PAGE_H) + 1);
+    for (let p = first; p <= last; p++) await mountPage(p);
+    for (const p of Array.from(mounted.keys())) {
+      if (p === 'pending') continue;
+      if (p < first - 2 || p > last + 2) unmountPage(p);
+    }
+    const cur = Math.min(N, Math.max(1, Math.round(top / PAGE_H) + 1));
+    document.getElementById('pageno').textContent = cur + ' / ' + N;
+  }, NET_DELAY_MS);
+}
+app.addEventListener('scroll', simulate);
+simulate();
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = res;
+    s.onerror = () => rej(new Error('load fail ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+window.chrome = { runtime: { onMessage: { addListener() {} } } };
+
+loadScript('/lib/jspdf.umd.min.js?cb=' + Date.now()).then(() => {
+  // ===== Hook jsPDF (v4 dùng instance methods -> wrap constructor) =====
+  window.__PDF_RESULT__ = null;
+  window.__ADDED__ = [];
+  const RealJS = window.jspdf.jsPDF;
+  window.jspdf.jsPDF = class extends RealJS {
+    constructor(...args) {
+      super(...args);
+      const inst = this;
+      inst.save = function (name) {
+        window.__PDF_RESULT__ = { name, pages: inst.internal.getNumberOfPages() };
+        return Promise.resolve();
+      };
+      const origAdd = inst.addImage.bind(inst);
+      inst.addImage = function (...args) {
+        const d = String(args[0] || '');
+        window.__ADDED__.push(d.length + ':' + d.slice(-32));
+        return origAdd(...args);
+      };
+    }
+  };
+  return loadScript('/content/gdrive.js?cb=' + Date.now());
+}).then(() => {
+  window.__HARNESS_READY__ = true;
+}).catch((e) => { window.__errs.push('harness: ' + e.message); });
+</script>
+</body>
+</html>

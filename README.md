@@ -3,7 +3,7 @@
 > Unlock and export study documents from Studocu, Scribd & Google Drive as high-quality PDFs, no VIP account required.
 
 ![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
-![Version](https://img.shields.io/badge/version-1.0.0-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.2.0-green?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
 
 ## Features
@@ -12,7 +12,7 @@
 - **Export original-quality PDFs** via the browser print dialog, preserving vector fonts
 - **Reset Studocu sessions** on demand while retaining Cloudflare verification cookies
 - **Scribd support** to download PDFs without signing in
-- **Google Drive support** to export view-only (download-disabled) files: auto-scrolls the whole preview, captures every rendered page at native resolution, and streams them into a locally bundled jsPDF
+- **Google Drive support** to export view-only (download-disabled) files: auto-scans the whole preview from the top, owns each page's pixels via `fetch(blob:)` before Drive can revoke it, deduplicates pages by position, and assembles a locally bundled jsPDF
 - **Cloudflare-compatible** normal browsing with native browser cookies
 - **UI cleanup** removing banners, ads, and premium overlays
 
@@ -38,7 +38,7 @@ Open a Scribd document page, click the extension icon, then press **Tải PDF Sc
 
 ### Google Drive (View-Only)
 
-Open the file preview on Drive (`https://drive.google.com/file/d/.../view`), click **Tải PDF Google Drive** in the popup or the floating button on the page. The engine auto-scrolls through every page, converts each page image immediately (before Drive revokes its blob URL), and saves a multi-page PDF named after the file. No manual scrolling needed.
+Open the file preview on Drive (`https://drive.google.com/file/d/.../view`), click **Tải PDF Google Drive** in the popup or the floating button on the page. The engine jumps back to the top, sweeps through the document while owning each page's image bytes (immune to Drive's blob revocation and lazy re-rendering), waits adaptively for slow networks, then runs a verification pass against Drive's own page counter before saving a multi-page PDF named after the file. No manual scrolling needed. If some pages remain unavailable, the overlay reports exactly how many pages were saved vs. expected.
 
 ## Architecture
 
@@ -50,6 +50,10 @@ content/
   content.css   CSS for blur removal and hiding extra elements
   scribd.js     Scribd downloader (embed navigation, print)
   scribd.css    Scribd CSS (unblur, hide paywall)
+  gdrive.js     Google Drive engine (slot-based scan, blob capture, verify pass)
+lib/
+  jspdf.umd.min.js  Bundled jsPDF (no CDN, works offline & under CSP)
+test/           Node checks + Drive viewer mock harness (test/mock/)
 icons/          Extension icons (16, 48, 128px)
 ```
 
