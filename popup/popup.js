@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const versionBadge = document.getElementById('version-badge');
   const siteDot = document.getElementById('site-dot');
   const siteLabel = document.getElementById('site-label');
   const btnStudocu = document.getElementById('btn-studocu');
@@ -18,6 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let feedbackSending = false;
   let feedbackCloseTimer = null;
+
+  try {
+    const manifest = chrome.runtime.getManifest();
+    if (versionBadge && manifest.version) {
+      versionBadge.textContent = 'v' + manifest.version;
+    }
+  } catch (e) { /* giữ nguyên badge tĩnh */ }
 
   async function getActiveTab() {
     try {
