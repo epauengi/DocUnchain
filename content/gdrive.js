@@ -9,12 +9,8 @@
      toàn bộ các trang phía trên vị trí đang đứng.
    - Dedupe theo blob URL sai bản chất (re-render = URL mới), giữ
      reference <img> cũ gây capture vào phần tử đã detach.
-   - Mạng chậm: Drive nạp thêm trang lâu hơn cửa sổ chờ cố định →
-     vòng quét kết thúc sớm, mất cụm trang cuối.
 
-   Nâng cấp v1.2 (kỹ thuật đối chiếu từ greasyfork 538272/493184/
-   518434, zavierferodova/Google-Drive-View-Only-PDF-Script-
-   Downloader, dinhtienn/PDF-Downloader và cơ chế viewer của Drive):
+   Kiến trúc v1.2 (chống thiếu trang):
    1) Cuộn về ĐẦU tài liệu trước khi quét — không phụ thuộc vị trí
       người dùng đang đứng.
    2) "Own the pixels": fetch(blob:) tải bytes ngay khi trang xuất
@@ -22,15 +18,25 @@
       Drive revoke blob/unmount <img>.
    3) Dedupe theo TỌA ĐỘ trang (slot x/y trong scroller), không theo
       blob URL — re-render không bị tính trùng hay bỏ sót.
-   4) Chờ thích ứng kiểu backoff (0.9s→1.8s→3.6s→7.2s) tại biên
-      render: chỉ dừng khi cả scrollHeight lẫn số trang ổn định.
-   5) Đọc tổng số trang từ UI ("x / y") để hiện tiến độ và TỰ ĐỘNG
+   4) Đọc tổng số trang từ UI ("x / y") để hiện tiến độ và tự động
       quét xác minh lại các slot thiếu/lỗi trước khi lưu.
-   6) Ghép PDF theo thứ tự tọa độ → đúng trật tự trang dù trang nào
-      đó được convert muộn hơn; lọc trùng chồng-lấn do layout dịch.
-   7) Giữ nguyên: jsPDF bundle cục bộ (không CDN/CSP), hotfix
-      px_scaling, JPEG 0.94, MAX_DIM 2600, lọc filmstrip thumbnail,
-      scroller là container lớn nhất (tránh nhầm thanh thumbnail).
+   5) Ghép PDF theo thứ tự tọa độ; lọc trùng chồng-lấn do layout dịch.
+
+   Tăng tốc v1.2.1 (quét tuần tự chậm: mỗi trang +~1.5s chờ cố định,
+   67 trang mất tới vài phút):
+   a) Worker pool CONCURRENCY luồng fetch/decode/encode SONG SONG —
+      blob là dữ liệu local nên chạy đồng thời an toàn, thời gian
+      encode của trang trước bị che khuất bởi trang sau.
+   b) Bỏ mọi chờ cố định trong luồng nóng: cuộn bước dài (80%
+      viewport) nhịp 220ms, không quality-hold. Ảnh rõ hơn mà Drive
+      swap sau đó được nhận diện qua scanSlots (naturalWidth tăng)
+      và capture lại có giới hạn MAX_UPGRADES.
+   c) Chống thiếu trang khi cuộn nhanh: repairGaps so sánh khoảng
+      cách giữa các slot đã đăng ký với pitch trung vị của trang;
+      khe hở bất thường → cuộn quay lại đúng tâm khe, chờ Drive
+      mount rồi bắt. Lặp tối đa REPAIR_MAX_PASSES.
+   d) Chỉ vào lượt xác minh chậm khi thực sự thiếu so với tổng số
+      trang UI hoặc còn slot lỗi.
    ============================================================ */
 (() => {
   'use strict';
@@ -39,14 +45,17 @@
   const MIN_PAGE_WIDTH = 320;       // naturalWidth tối thiểu của ảnh trang
   const MIN_RENDER_W = 180;         // khung hiển thị tối thiểu (lọc thumbnail)
   const MIN_RENDER_H = 220;
-  const SCROLL_TOP_SETTLE_MS = 700;
-  const IMAGE_TIMEOUT_MS = 20000;
-  const QUALITY_HOLD_MS = 350;      // chờ Drive swap ảnh low-res -> full-res
-  const FRONTIER_WAIT_MS = 1100;    // chờ DOM phản ứng sau mỗi bước cuộn
-  const IDLE_BASE_MS = 900;         // backoff tại đáy: 0.9s->1.8s->3.6s->7.2s...
-  const IDLE_MAX_MS = 8000;
-  const IDLE_LIMIT = 5;             // tổng grace ~20s trước khi chốt kết thúc
-  const VERIFY_STEP_RATIO = 0.45;   // bước cuộn nhỏ hơn ở lượt xác minh
+  const SCROLL_TOP_SETTLE_MS = 450;
+  const IMAGE_TIMEOUT_MS = 15000;
+  const STEP_MS = 220;              // nhịp cuộn ở pha quét nhanh
+  const STEP_RATIO = 0.8;           // bước cuộn 80% viewport
+  const BOTTOM_WAITS = [300, 600, 1200]; // ổn định đáy trước khi kết thúc pha quét
+  const VERIFY_WAIT_MS = 800;
+  const VERIFY_ROUNDS = 3;
+  const REPAIR_MAX_PASSES = 3;
+  const GAP_FACTOR = 1.45;          // khe > 1.45 lần pitch trang => nghi thiếu trang
+  const CONCURRENCY = 4;            // số trang xử lý song song
+  const MAX_UPGRADES = 2;           // giới hạn capture lại khi có ảnh nét hơn
   const MAX_PAGES = 1500;
   const MAX_DIM = 2600;             // hạ mẫu nếu trang vượt quá (an toàn RAM)
   const JPEG_QUALITY = 0.94;
@@ -152,7 +161,7 @@
   function ensureDecoded(img) {
     if (img.complete && img.naturalWidth > 0) return img.decode().catch(() => {});
     // Ảnh đã kết thúc mà không có nội dung (blob bị revoke) -> fail nhanh,
-    // đừng đợi timeout 20s làm tụt toàn bộ vòng quét.
+    // đừng đợi timeout làm tụt toàn bộ vòng quét.
     if (img.complete && img.naturalWidth === 0 && img.src) {
       return Promise.reject(new Error('broken-image'));
     }
@@ -269,9 +278,17 @@
       const slot = slots.get(key);
       if (slot) {
         slot.img = img; // element mới thay thế cùng vị trí
-        if (slot.state === 'failed') slot.state = 'pending'; // cho thử lại
+        const nw = img.naturalWidth || 0;
+        if (slot.state === 'failed') {
+          slot.state = 'pending'; // cho thử lại với element mới
+        } else if (slot.state === 'ok' && nw > 0 && slot.srcWidth > 0 &&
+                   nw > slot.srcWidth * 1.12 && (slot.upgrades || 0) < MAX_UPGRADES) {
+          // Drive vừa swap bản RÕ hơn tại đúng vị trí này -> capture lại
+          slot.upgrades = (slot.upgrades || 0) + 1;
+          slot.state = 'pending';
+        }
       } else if (slots.size < MAX_PAGES * 2) {
-        slots.set(key, { y, x, img, state: 'pending', data: null });
+        slots.set(key, { y, x, img, state: 'pending', data: null, srcWidth: 0, upgrades: 0 });
       }
     }
   }
@@ -294,70 +311,83 @@
     return bestDist <= 200 ? best : null;
   }
 
-  // ========== Capture 1 slot: bytes-first, 3 mức thử ==========
-  //   1) fetch blob bytes -> bitmap (chống revoke) + quality-hold chờ full-res
-  //   2) vẽ trực tiếp từ <img> đang sống (dự phòng khi fetch bị chặn)
-  //   3) cuộn trang vào giữa viewport ép Drive re-render rồi thử lại
-  async function captureSlot(slot) {
-    for (let attempt = 1; attempt <= 3 && !cancelled; attempt++) {
-      let img = slot.img;
-      if (!img || !img.isConnected || !isBlobPageImg(img)) {
-        img = relocateImg(slot);
-        if (img) slot.img = img;
-      }
+  // ========== Capture 1 lần duy nhất (không chờ trong luồng nóng) ==========
+  // Nhánh chính: sở hữu bytes qua fetch -> bitmap (chống revoke).
+  // Dự phòng: vẽ trực tiếp từ <img> đang sống. Thất bại trả false,
+  // việc thử lại do các pha vá/xác minh quyết định.
+  async function captureOnce(slot) {
+    let img = slot.img;
+    if (!img || !img.isConnected || !isBlobPageImg(img)) {
+      img = relocateImg(slot);
+      if (img) slot.img = img;
+    }
+    if (!img || !img.isConnected || !isBlobPageImg(img)) return false;
 
-      if (img && img.isConnected) {
-        let decoded = null;
-        // Nhánh 1: sở hữu bytes
-        try {
-          const beforeSrc = img.src;
-          const blob = await fetchBlob(beforeSrc, IMAGE_TIMEOUT_MS);
-          decoded = await decodeBlob(blob);
-          if (decoded.width < MIN_PAGE_WIDTH) throw new Error('low-res');
-          if (attempt === 1) {
-            // Quality-hold: Drive hay mount placeholder low-res trước,
-            // chờ một nhịp; nếu src vừa được swap sang blob mới thì lấy bản đẹp hơn.
-            await delay(QUALITY_HOLD_MS);
-            const cur = slot.img;
-            if (cur && cur.isConnected && isBlobPageImg(cur) && cur.src !== beforeSrc) {
-              try {
-                const b2 = await fetchBlob(cur.src, IMAGE_TIMEOUT_MS);
-                const d2 = await decodeBlob(b2);
-                if (d2.width > decoded.width) {
-                  decoded.close();
-                  decoded = d2;
-                } else {
-                  d2.close();
-                }
-              } catch (e) { /* giữ bản đã có */ }
-            }
-          }
-          const out = encodeSource(decoded.source, decoded.width, decoded.height);
-          decoded.close();
-          return out;
-        } catch (e) {
-          if (decoded) { try { decoded.close(); } catch (e2) {} }
-        }
-        // Nhánh 2: vẽ trực tiếp
-        try {
-          return await convertPageDirect(img);
-        } catch (e) { /* chuyển mức thử kế tiếp */ }
+    try {
+      const blob = await fetchBlob(img.src, IMAGE_TIMEOUT_MS);
+      const decoded = await decodeBlob(blob);
+      try {
+        if (decoded.width < MIN_PAGE_WIDTH) throw new Error('low-res');
+        slot.data = encodeSource(decoded.source, decoded.width, decoded.height);
+        slot.srcWidth = decoded.width;
+        return true;
+      } finally {
+        decoded.close();
       }
-
-      if (attempt < 3) {
-        if (attempt === 2) {
-          try {
-            if (slot.img && slot.img.isConnected) {
-              slot.img.scrollIntoView({ behavior: 'instant', block: 'center' });
-            }
-            await delay(550);
-          } catch (e) {}
-        } else {
-          await delay(400 * attempt);
-        }
+    } catch (e) {
+      // dự phòng nhẹ, không chờ: vẽ trực tiếp nếu ảnh còn sống & đã decode
+      try {
+        slot.data = await convertPageDirect(img);
+        slot.srcWidth = img.naturalWidth;
+        return true;
+      } catch (e2) {
+        return false;
       }
     }
-    return null;
+  }
+
+  // ========== Worker pool xử lý song song ==========
+  function createPool(size, worker) {
+    const queue = [];
+    let active = 0;
+    let idleResolve = null;
+    const settleIdle = () => {
+      if (active === 0 && queue.length === 0 && idleResolve) {
+        const r = idleResolve;
+        idleResolve = null;
+        r();
+      }
+    };
+    const pump = () => {
+      if (cancelled) queue.length = 0;
+      while (active < size && queue.length) {
+        const slot = queue.shift();
+        slot.queued = false;
+        active++;
+        Promise.resolve()
+          .then(() => worker(slot))
+          .catch(() => {})
+          .finally(() => {
+            active--;
+            pump();
+            settleIdle();
+          });
+      }
+      settleIdle();
+    };
+    return {
+      push(slot) {
+        if (cancelled || slot.queued) return;
+        slot.queued = true;
+        queue.push(slot);
+        pump();
+      },
+      get busy() { return active > 0 || queue.length > 0; },
+      drain() {
+        if (!this.busy) return Promise.resolve();
+        return new Promise((res) => { idleResolve = res; });
+      },
+    };
   }
 
   // ========== Chờ candidate mới qua MutationObserver (debounce nhẹ) ==========
@@ -417,75 +447,127 @@
     return expectedTotalCache;
   }
 
-  // ========== Một lượt quét: cuộn từ đầu tới cuối + capture stream ==========
-  async function sweep(slots, seenImgs, opts, onStatus) {
-    let idle = 0;
-    let guard = 0;
-
-    const anyPending = () => {
-      for (const s of slots.values()) if (s.state === 'pending') return true;
-      return false;
-    };
-    const countOk = () => {
-      let n = 0;
-      for (const s of slots.values()) if (s.state === 'ok') n++;
-      return n;
-    };
-
+  // ========== Pha 1: quét nhanh + capture song song ==========
+  async function fastSweep(slots, seenImgs, pool) {
+    let bottomRounds = 0;
     while (!cancelled) {
-      if (++guard > MAX_PAGES * 10) { log('Dừng: vượt giới hạn lượt quét.'); break; }
-
       if (slots.size === 0) getScroller(true); // scroller trong có thể mount sau
       scanSlots(slots, seenImgs);
+      for (const s of slots.values()) if (s.state === 'pending') pool.push(s);
 
-      const pending = [];
-      for (const s of slots.values()) if (s.state === 'pending') pending.push(s);
-      pending.sort((a, b) => (a.y - b.y) || (a.x - b.x));
+      const sc = getScroller(false);
+      const before = scrollTopOf(sc);
 
-      if (pending.length) {
-        idle = 0;
-        for (const slot of pending) {
-          if (cancelled) break;
-          const rec = await captureSlot(slot);
-          if (rec) {
-            slot.state = 'ok';
-            slot.data = rec;
-          } else {
-            slot.state = 'failed';
-          }
-          onStatus(countOk());
-        }
+      if (before < maxScrollOf(sc) - 4) {
+        setScrollTop(sc, Math.min(maxScrollOf(sc), before + Math.max(320, clientHeightOf(sc) * STEP_RATIO)));
+        bottomRounds = 0;
+        await delay(STEP_MS);
         continue;
       }
 
-      // Hết trang chờ -> tiến dần biên render (bước ngắn, không nhảy cóc)
-      const sc = getScroller(false);
-      const beforeTop = scrollTopOf(sc);
-      const prevHeight = scrollHeightOf(sc);
-      const step = Math.max(260, clientHeightOf(sc) * (opts.verify ? VERIFY_STEP_RATIO : 0.55));
-      setScrollTop(sc, Math.min(maxScrollOf(sc), beforeTop + step));
-
-      await waitForCandidate(seenImgs, opts.waitMs);
-
+      // Ở đáy dữ liệu hiện có: chờ leo thang ngắn xem Drive có nạp thêm không
+      const wait = BOTTOM_WAITS[Math.min(bottomRounds, BOTTOM_WAITS.length - 1)];
+      const hBefore = scrollHeightOf(sc);
+      await delay(wait);
       scanSlots(slots, seenImgs);
-      if (anyPending()) { idle = 0; continue; }
+      for (const s of slots.values()) if (s.state === 'pending') pool.push(s);
 
-      const advanced = scrollTopOf(sc) > beforeTop + 2;
-      const grew = scrollHeightOf(sc) > prevHeight + 4;
-      const atMax = scrollTopOf(sc) >= maxScrollOf(sc) - 6;
+      const grew = scrollHeightOf(sc) > hBefore + 4;
+      if (grew || pool.busy) {
+        bottomRounds = 0;
+        await delay(120); // tránh xoay vòng kín khi pool còn việc
+        continue;
+      }
 
-      if ((atMax || !advanced) && !grew) {
-        // Backoff thích ứng: mạng chậm vẫn kịp nạp thêm trang trước khi chốt
-        idle++;
-        const wait = Math.min(opts.idleMaxMs, opts.idleBaseMs * (2 ** (idle - 1)));
-        await delay(wait);
+      bottomRounds++;
+      if (bottomRounds > BOTTOM_WAITS.length) break; // đã qua hết mốc chờ
+    }
+    await pool.drain();
+  }
+
+  // ========== Pha 2: vá khe thiếu theo tọa độ ==========
+  // Trang xếp dồn liên tục nên khoảng cách y giữa 2 slot kề nhau ~ đều
+  // (pitch). Khe hở lớn bất thường = vùng Drive chưa mount -> quay lại
+  // đúng tâm khe, chờ mount rồi để pool bắt. Chỉ áp dụng layout 1 cột.
+  function computeGapTargets(slots) {
+    const list = Array.from(slots.values()).sort((a, b) => (a.y - b.y) || (a.x - b.x));
+    if (list.length < 3) return [];
+    let minX = Infinity;
+    let maxX = -Infinity;
+    for (const s of list) {
+      if (s.x < minX) minX = s.x;
+      if (s.x > maxX) maxX = s.x;
+    }
+    if (maxX - minX > 240) return []; // nhiều cột (grid/two-up): bỏ qua
+
+    const pitches = [];
+    for (let i = 1; i < list.length; i++) {
+      const d = list[i].y - list[i - 1].y;
+      if (d > 60) pitches.push(d);
+    }
+    if (!pitches.length) return [];
+    pitches.sort((a, b) => a - b);
+    const pitch = pitches[Math.floor(pitches.length / 2)];
+
+    const targets = [];
+    for (let i = 1; i < list.length; i++) {
+      const d = list[i].y - list[i - 1].y;
+      if (d > pitch * GAP_FACTOR) targets.push(list[i - 1].y + d / 2);
+    }
+    return targets;
+  }
+
+  async function repairGaps(slots, seenImgs, pool, tick) {
+    for (let pass = 0; pass < REPAIR_MAX_PASSES && !cancelled; pass++) {
+      scanSlots(slots, seenImgs);
+      for (const s of slots.values()) if (s.state === 'pending') pool.push(s);
+      // slot failed còn ảnh sống: cho cơ hội thử lại trong pass này
+      for (const s of slots.values()) {
+        if (s.state === 'failed' && s.img && s.img.isConnected && isBlobPageImg(s.img)) {
+          s.state = 'pending';
+          pool.push(s);
+        }
+      }
+
+      const okBefore = tick.count();
+      const targets = computeGapTargets(slots);
+      const sc = getScroller(false);
+      for (const ty of targets) {
+        if (cancelled) break;
+        setScrollTop(sc, Math.max(0, ty - clientHeightOf(sc) / 2));
+        await waitForCandidate(seenImgs, 1600);
         scanSlots(slots, seenImgs);
-        if (anyPending()) { idle = 0; continue; }
-        if (idle >= opts.idleLimit) break;
+        for (const s of slots.values()) if (s.state === 'pending') pool.push(s);
+      }
+      await pool.drain();
+
+      const recovered = tick.count() > okBefore;
+      if (!targets.length && !recovered) break;
+      if (targets.length && !recovered && pass >= 1) break; // khe chết: đừng lặp mãi
+    }
+  }
+
+  // ========== Pha 3: xác minh chậm (chỉ khi cần) ==========
+  async function verifySweep(slots, seenImgs, pool) {
+    setScrollTop(getScroller(true), 0);
+    await delay(450);
+    let rounds = 0;
+    while (!cancelled) {
+      scanSlots(slots, seenImgs);
+      for (const s of slots.values()) if (s.state === 'pending') pool.push(s);
+      const sc = getScroller(false);
+      if (scrollTopOf(sc) < maxScrollOf(sc) - 4) {
+        setScrollTop(sc, Math.min(maxScrollOf(sc), scrollTopOf(sc) + Math.max(280, clientHeightOf(sc) * 0.5)));
+        await waitForCandidate(seenImgs, VERIFY_WAIT_MS);
+        rounds = 0;
       } else {
-        idle = 0;
+        await delay(BOTTOM_WAITS[1]);
+        scanSlots(slots, seenImgs);
+        for (const s of slots.values()) if (s.state === 'pending') pool.push(s);
+        if (++rounds >= VERIFY_ROUNDS && !pool.busy) break;
       }
     }
+    await pool.drain();
   }
 
   // Loại bản ghi trùng do layout dịch chỗ (placeholder cao khác full-res):
@@ -510,46 +592,67 @@
     return out;
   }
 
-  // ========== Quét tổng: đầu tài liệu -> cuối -> xác minh ==========
+  // ========== Quét tổng: nhanh -> vá khe -> xác minh ==========
   // Trả về danh sách trang đã sắp theo tọa độ (đúng thứ tự tài liệu).
   async function runCapture(onStatus) {
     const slots = new Map();
     const seenImgs = new WeakSet();
+
+    const countOk = () => {
+      let n = 0;
+      for (const s of slots.values()) if (s.state === 'ok') n++;
+      return n;
+    };
+    const countFailed = () => {
+      let n = 0;
+      for (const s of slots.values()) if (s.state === 'failed') n++;
+      return n;
+    };
 
     // QUAN TRỌNG: luôn bắt đầu từ đầu tài liệu — người dùng có thể đang
     // đứng giữa doc; chỉ cuộn xuống sẽ mất toàn bộ phần phía trên.
     setScrollTop(getScroller(true), 0);
     await delay(SCROLL_TOP_SETTLE_MS);
 
-    await sweep(slots, seenImgs, {
-      verify: false,
-      waitMs: FRONTIER_WAIT_MS,
-      idleBaseMs: IDLE_BASE_MS,
-      idleMaxMs: IDLE_MAX_MS,
-      idleLimit: IDLE_LIMIT,
-    }, onStatus);
+    // Tick trạng thái chống spam: chỉ đẩy UI khi số trang đổi hoặc >400ms
+    let lastSent = -1;
+    let lastSentAt = 0;
+    const tick = {
+      count: countOk,
+      fire(forceText) {
+        const now = Date.now();
+        const n = countOk();
+        if (forceText || n !== lastSent || now - lastSentAt > 400) {
+          lastSent = n;
+          lastSentAt = now;
+          onStatus(n, forceText || null);
+        }
+      },
+    };
 
-    // Lượt xác minh: còn slot lỗi, hoặc tổng trang UI > số đã chụp?
-    let okCount = 0;
-    let missing = 0;
-    for (const s of slots.values()) {
-      if (s.state === 'ok') okCount++; else missing++;
-    }
+    const pool = createPool(CONCURRENCY, async (slot) => {
+      if (slot.state !== 'pending') return;
+      const okNow = await captureOnce(slot);
+      slot.state = okNow ? 'ok' : 'failed';
+      tick.fire(null);
+    });
+
+    // Pha 1: quét nhanh từ đầu xuống cuối, decode/encode song song
+    await fastSweep(slots, seenImgs, pool);
+
+    // Pha 2: vá các khe trang bị bỏ lỡ do lazy-load
+    await repairGaps(slots, seenImgs, pool, tick);
+
+    // Pha 3: xác minh khi thiếu so tổng UI hoặc còn slot lỗi
     const exp = expectedTotal();
-    if (!cancelled && (missing > 0 || (exp && okCount < exp))) {
-      log('Xác minh lại:', { missing, okCount, exp });
-      onStatus(-1, 'Đang kiểm tra lại các trang còn thiếu...');
-      setScrollTop(getScroller(false), 0);
-      await delay(700);
-      await sweep(slots, seenImgs, {
-        verify: true,
-        waitMs: 900,
-        idleBaseMs: 1400,
-        idleMaxMs: 4000,
-        idleLimit: 3,
-      }, (n) => onStatus(n, null));
+    if (!cancelled && ((exp > 0 && countOk() < exp) || countFailed() > 0)) {
+      log('Xác minh lại:', { failed: countFailed(), ok: countOk(), exp });
+      tick.fire('Đang kiểm tra lại các trang còn thiếu...');
+      await verifySweep(slots, seenImgs, pool);
+      await repairGaps(slots, seenImgs, pool, tick);
     }
 
+    // Kết quả sắp theo tọa độ + loại trùng chồng lấn
     let records = [];
     for (const s of slots.values()) {
       if (s.state === 'ok' && s.data) records.push({ y: s.y, x: s.x, data: s.data });

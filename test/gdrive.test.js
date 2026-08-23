@@ -8,8 +8,7 @@ const popupHtml = fs.readFileSync('popup/popup.html', 'utf8');
 const css = fs.readFileSync('content/gdrive.css', 'utf8');
 
 // Manifest wiring
-assert.match(manifest.version, /^1\.2\./);
-assert.ok(manifest.host_permissions.includes('*://drive.google.com/*'));
+assert.match(manifest.version, /^1\.2\./);assert.ok(manifest.host_permissions.includes('*://drive.google.com/*'));
 const driveEntry = manifest.content_scripts.find((cs) => cs.matches.includes('*://drive.google.com/*'));
 assert.ok(driveEntry, 'Drive content script must be registered');
 assert.deepEqual(driveEntry.js, ['lib/jspdf.umd.min.js', 'content/gdrive.js']);
@@ -23,12 +22,11 @@ assert.match(source, /px_scaling/);
 
 // Engine: auto-scroll capture (fixes missing pages of the old code)
 assert.match(source, /runCapture/);
-assert.match(source, /scrollIntoView/);
 assert.match(source, /MAX_PAGES/);
 // scroller phải là container lớn nhất, không dính filmstrip thumbnail
 assert.match(source, /resolveScroller/);
 assert.match(source, /bestHeight/);
-// chờ trang render qua MutationObserver, có cửa sổ xác nhận trước khi dừng
+// chờ trang render qua MutationObserver (dùng ở pha vá/xác minh)
 assert.match(source, /waitForCandidate/);
 assert.match(source, /MutationObserver/);
 
@@ -42,18 +40,33 @@ assert.match(source, /createImageBitmap/);
 assert.match(source, /scanSlots/);
 assert.match(source, /slotKey/);
 assert.match(source, /WeakSet/);
-// - backoff thích ứng tại biên render, không dừng sớm khi mạng chậm
-assert.match(source, /IDLE_BASE_MS/);
-assert.match(source, /2 \*\* \(idle - 1\)/);
 // - lượt quét xác minh trang thiếu + tổng trang đọc từ UI
 assert.match(source, /expectedTotal/);
 assert.match(source, /dedupeOverlaps/);
 // - ghép PDF đúng thứ tự tọa độ
 assert.match(source, /\.sort\(\(a, b\) => \(a\.y - b\.y\)/);
 
+// v1.2.1 tăng tốc:
+// - worker pool xử lý song song nhiều trang cùng lúc
+assert.match(source, /CONCURRENCY/);
+assert.match(source, /createPool/);
+assert.match(source, /captureOnce/);
+// - quét nhanh: bước cuộn dài, nhịp ngắn, không chờ cố định mỗi trang
+assert.match(source, /fastSweep/);
+assert.match(source, /STEP_MS/);
+assert.match(source, /STEP_RATIO/);
+// - chống bỏ lỡ trang khi cuộn nhanh: vá khe theo pitch trung vị
+assert.match(source, /repairGaps/);
+assert.match(source, /computeGapTargets/);
+assert.match(source, /GAP_FACTOR/);
+// - ổn định đáy bằng chuỗi chờ leo thang ngắn thay vì backoff dài
+assert.match(source, /BOTTOM_WAITS/);
+// - nâng cấp ảnh rõ hơn có giới hạn, không lặp vô hạn
+assert.match(source, /MAX_UPGRADES/);
+assert.match(source, /srcWidth \* 1\.12/);
+
 // Engine: capture trước khi Drive revoke blob URLs
 assert.match(source, /startsWith\('blob:'\)/);
-assert.match(source, /captureSlot/);
 assert.match(source, /toDataURL\('image\/jpeg'/);
 assert.match(source, /returnPromise:\s*true/);
 

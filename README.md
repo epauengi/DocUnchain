@@ -3,7 +3,7 @@
 > Unlock and export study documents from Studocu, Scribd & Google Drive as high-quality PDFs, no VIP account required.
 
 ![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
-![Version](https://img.shields.io/badge/version-1.2.0-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.2.1-green?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
 
 ## Features
@@ -12,7 +12,7 @@
 - **Export original-quality PDFs** via the browser print dialog, preserving vector fonts
 - **Reset Studocu sessions** on demand while retaining Cloudflare verification cookies
 - **Scribd support** to download PDFs without signing in
-- **Google Drive support** to export view-only (download-disabled) files: auto-scans the whole preview from the top, owns each page's pixels via `fetch(blob:)` before Drive can revoke it, deduplicates pages by position, and assembles a locally bundled jsPDF
+- **Google Drive support** to export view-only (download-disabled) files: auto-scans the whole preview from the top, captures pages in parallel (owning each page's pixels via `fetch(blob:)` before Drive can revoke it), repairs skipped lazy-load gaps by coordinate analysis, deduplicates pages by position, and assembles a locally bundled jsPDF
 - **Cloudflare-compatible** normal browsing with native browser cookies
 - **UI cleanup** removing banners, ads, and premium overlays
 
