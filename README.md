@@ -3,7 +3,7 @@
 > Unlock and export study documents from Studocu, Scribd & Google Drive as high-quality PDFs, no VIP account required.
 
 ![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
-![Version](https://img.shields.io/badge/version-1.2.1-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.3.0-green?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
 
 ## Features
@@ -13,6 +13,7 @@
 - **Reset Studocu sessions** on demand while retaining Cloudflare verification cookies
 - **Scribd support** to download PDFs without signing in
 - **Google Drive support** to export view-only (download-disabled) files: auto-scans the whole preview from the top, captures pages in parallel (owning each page's pixels via `fetch(blob:)` before Drive can revoke it), repairs skipped lazy-load gaps by coordinate analysis, deduplicates pages by position, and assembles a locally bundled jsPDF
+- **Junk PDF generator** in the popup: builds filler A4 PDFs from Wikipedia VI/EN random summaries (Lorem fallback offline), capped at 10 files × 10 pages
 - **Cloudflare-compatible** normal browsing with native browser cookies
 - **UI cleanup** removing banners, ads, and premium overlays
 
@@ -40,10 +41,15 @@ Open a Scribd document page, click the extension icon, then press **Tải PDF Sc
 
 Open the file preview on Drive (`https://drive.google.com/file/d/.../view`), click **Tải PDF Google Drive** in the popup or the floating button on the page. The engine jumps back to the top, sweeps through the document while owning each page's image bytes (immune to Drive's blob revocation and lazy re-rendering), waits adaptively for slow networks, then runs a verification pass against Drive's own page counter before saving a multi-page PDF named after the file. No manual scrolling needed. If some pages remain unavailable, the overlay reports exactly how many pages were saved vs. expected.
 
+### Junk PDF
+
+Open the extension popup on any tab. In **Junk PDF**, set file count, pages per file, and Wikipedia paragraph count (each 1–10), then press **Tạo PDF rác**. The popup fetches random VI/EN Wikipedia summaries when online, falls back to local Lorem text otherwise, and downloads the generated PDFs via bundled jsPDF.
+
 ## Architecture
 
 ```
-popup/          Popup UI (site detection, command dispatch)
+popup/          Popup UI (site detection, command dispatch, junk PDF)
+  junk-pdf.js   Wikipedia filler → jsPDF generator
 background.js   Service worker (Cloudflare-safe cookie clearing)
 content/
   content.js    Studocu engine (unblur, text/image injection, PDF export)
@@ -75,7 +81,7 @@ Cookie-header stripping is deliberately not used: Chrome MV3 cannot retain only 
 | `downloads` | Support file downloads |
 | `cookies` | Reset Studocu cookies while retaining Cloudflare verification cookies |
 
-Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `drive.google.com`, and regional Studocu mirrors listed in `manifest.json`.
+Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `drive.google.com`, `*.wikipedia.org` (junk PDF content), and regional Studocu mirrors listed in `manifest.json`.
 
 ## Credits
 

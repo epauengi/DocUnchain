@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DocUnchain - Clean Document & PDF Exporter",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Mở khoá nội dung và trích xuất tài liệu học tập PDF chất lượng gốc độ nét cao từ Studocu, Scribd & Google Drive (file View-Only) không cần tài khoản VIP.",
   "permissions": [
     "activeTab",
