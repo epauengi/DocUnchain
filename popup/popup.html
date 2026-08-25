@@ -57,12 +57,14 @@
     .header,
     .site-status,
     .action-block,
+    .junk-block,
     .footer {
       animation: rise 420ms cubic-bezier(0.2, 0.9, 0.3, 1) backwards;
     }
 
     .site-status { animation-delay: 55ms; }
     .action-block { animation-delay: 110ms; }
+    .junk-block { animation-delay: 140ms; }
     .footer { animation-delay: 165ms; }
 
     @keyframes rise {
@@ -476,6 +478,71 @@
     .btn-secondary:active { transform: translateY(1px); }
 
     /* Feedback is secondary to the document action. */
+    .junk-block {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--stroke);
+    }
+
+    .junk-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .junk-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .junk-field span {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .junk-field input {
+      width: 100%;
+      min-height: 32px;
+      padding: 6px 8px;
+      border: 1px solid var(--stroke);
+      border-radius: 8px;
+      outline: none;
+      background: rgba(4, 8, 14, 0.66);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      user-select: text;
+      transition: border-color 170ms ease, box-shadow 170ms ease;
+    }
+
+    .junk-field input:hover { border-color: rgba(158, 184, 214, 0.52); }
+    .junk-field input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(93, 178, 255, 0.16);
+    }
+
+    .junk-block .btn-secondary { margin-top: 0; }
+
+    .junk-status {
+      min-height: 14px;
+      margin-top: 7px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 1.35;
+    }
+
+    .junk-status.success { color: var(--mint); }
+    .junk-status.error { color: var(--danger); }
+
     .footer {
       margin-top: 14px;
       padding-top: 11px;
@@ -522,6 +589,7 @@
     .btn-feedback:focus-visible,
     .btn-primary:focus-visible,
     .btn-secondary:focus-visible,
+    .junk-field input:focus-visible,
     .feedback-dialog button:focus-visible,
     .feedback-dialog textarea:focus-visible,
     .feedback-dialog input:focus-visible {
@@ -720,7 +788,7 @@
         scroll-behavior: auto !important;
       }
 
-      .header, .site-status, .action-block, .footer { animation: none; }
+      .header, .site-status, .action-block, .junk-block, .footer { animation: none; }
 
       .btn-primary:active,
       .btn-secondary:active,
@@ -777,12 +845,35 @@
       </button>
     </section>
 
+    <section class="junk-block" aria-label="Tạo PDF rác">
+      <div class="action-label"><span>Junk PDF</span><span class="action-mark">02</span></div>
+      <div class="junk-row">
+        <label class="junk-field">
+          <span>File</span>
+          <input id="junk-files" type="number" min="1" max="10" value="1" inputmode="numeric" aria-label="Số file">
+        </label>
+        <label class="junk-field">
+          <span>Trang</span>
+          <input id="junk-pages" type="number" min="1" max="10" value="1" inputmode="numeric" aria-label="Số trang mỗi file">
+        </label>
+        <label class="junk-field">
+          <span>Wiki</span>
+          <input id="junk-wiki" type="number" min="1" max="10" value="5" inputmode="numeric" aria-label="Số đoạn Wikipedia">
+        </label>
+      </div>
+      <button class="btn-secondary" id="btn-junk" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1 7V3.5L18.5 9H15zM8 13h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V9z"/></svg>
+        Tạo PDF rác
+      </button>
+      <div class="junk-status" id="junk-status" role="status" aria-live="polite" aria-atomic="true"></div>
+    </section>
+
     <footer class="footer">
       <button class="btn-feedback" id="btn-feedback" type="button" aria-label="Mở biểu mẫu báo lỗi">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H8l-4 2v-4.5A7.5 7.5 0 1 1 20 11.5Z"/><path d="M12 8v4M12 15.5h.01"/></svg>
         Báo lỗi
       </button>
-      <div class="footer-note">Studocu · Scribd · Drive · PDF</div>
+      <div class="footer-note">Studocu · Scribd · Drive · Junk PDF</div>
     </footer>
   </main>
 
@@ -805,7 +896,9 @@
     </form>
   </dialog>
 
+  <script src="../lib/jspdf.umd.min.js"></script>
   <script src="config.js"></script>
+  <script src="junk-pdf.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

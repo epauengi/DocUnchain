@@ -52,7 +52,8 @@
     "*://*.studocu.com.tr/*",
     "*://*.scribd.com/*",
     "*://drive.google.com/*",
-    "https://formsubmit.co/*"
+    "https://formsubmit.co/*",
+    "https://*.wikipedia.org/*"
   ],
   "background": {
     "service_worker": "background.js"

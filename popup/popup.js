@@ -16,9 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const feedbackStatus = document.getElementById('feedback-status');
   const feedbackCancel = document.getElementById('feedback-cancel');
   const feedbackSubmit = document.getElementById('feedback-submit');
+  const junkFiles = document.getElementById('junk-files');
+  const junkPages = document.getElementById('junk-pages');
+  const junkWiki = document.getElementById('junk-wiki');
+  const btnJunk = document.getElementById('btn-junk');
+  const junkStatus = document.getElementById('junk-status');
 
   let feedbackSending = false;
   let feedbackCloseTimer = null;
+  let junkBusy = false;
 
   try {
     const manifest = chrome.runtime.getManifest();
@@ -358,5 +364,40 @@ document.addEventListener('DOMContentLoaded', () => {
   feedbackDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
     closeFeedback();
+  });
+
+  function setJunkStatus(message, type) {
+    junkStatus.textContent = message || '';
+    junkStatus.className = 'junk-status' + (type ? ` ${type}` : '');
+  }
+
+  btnJunk.addEventListener('click', async () => {
+    if (junkBusy) return;
+    if (!window.JunkPdf || typeof window.JunkPdf.generate !== 'function') {
+      setJunkStatus('Module PDF chưa sẵn sàng.', 'error');
+      return;
+    }
+
+    junkBusy = true;
+    btnJunk.disabled = true;
+    setJunkStatus('Đang chuẩn bị…');
+
+    try {
+      const result = await window.JunkPdf.generate({
+        fileCount: junkFiles.value,
+        pageCount: junkPages.value,
+        wikiCount: junkWiki.value,
+        onProgress: (msg) => setJunkStatus(msg),
+      });
+      junkFiles.value = String(window.JunkPdf.clamp(junkFiles.value));
+      junkPages.value = String(window.JunkPdf.clamp(junkPages.value));
+      junkWiki.value = String(window.JunkPdf.clamp(junkWiki.value));
+      setJunkStatus(`Đã lưu ${result.files} file × ${result.pages} trang`, 'success');
+    } catch (error) {
+      setJunkStatus(error && error.message ? error.message : 'Không tạo được PDF.', 'error');
+    } finally {
+      junkBusy = false;
+      btnJunk.disabled = false;
+    }
   });
 });
