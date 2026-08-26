@@ -1,9 +1,9 @@
 # DocUnchain
 
-> Unlock and export study documents from Studocu, Scribd & Google Drive as high-quality PDFs, no VIP account required.
+> Unlock and export study documents from Studocu, Scribd, SlideShare & Google Drive as high-quality PDFs, no VIP account required.
 
 ![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
-![Version](https://img.shields.io/badge/version-1.3.0-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.4.0-green?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
 
 ## Features
@@ -12,6 +12,7 @@
 - **Export original-quality PDFs** via the browser print dialog, preserving vector fonts
 - **Reset Studocu sessions** on demand while retaining Cloudflare verification cookies
 - **Scribd support** to download PDFs without signing in
+- **SlideShare support** to stitch CDN slide images (`image.slidesharecdn.com`) into a local jsPDF from `#__NEXT_DATA__` (DOM srcset fallback)
 - **Google Drive support** to export view-only (download-disabled) files: auto-scans the whole preview from the top, captures pages in parallel (owning each page's pixels via `fetch(blob:)` before Drive can revoke it), repairs skipped lazy-load gaps by coordinate analysis, deduplicates pages by position, and assembles a locally bundled jsPDF
 - **Junk PDF generator** in the popup: builds filler A4 PDFs from Wikipedia VI/EN random summaries (Lorem fallback offline), capped at 10 files × 10 pages
 - **Cloudflare-compatible** normal browsing with native browser cookies
@@ -37,6 +38,10 @@ If you hit a view limit, use the **Reset phiên Studocu** button to clear cookie
 
 Open a Scribd document page, click the extension icon, then press **Tải PDF Scribd**. The extension navigates to the embed page and renders the PDF automatically.
 
+### SlideShare
+
+Open a presentation (`https://www.slideshare.net/slideshow/...` or `/{user}/{slug}`), click **Tải PDF SlideShare** in the popup or the floating button. The extension reads slide metadata from the page, fetches full-resolution JPEGs from SlideShare's CDN, and saves a multi-page PDF named after the deck. Homepage/search pages have no FAB.
+
 ### Google Drive (View-Only)
 
 Open the file preview on Drive (`https://drive.google.com/file/d/.../view`), click **Tải PDF Google Drive** in the popup or the floating button on the page. The engine jumps back to the top, sweeps through the document while owning each page's image bytes (immune to Drive's blob revocation and lazy re-rendering), waits adaptively for slow networks, then runs a verification pass against Drive's own page counter before saving a multi-page PDF named after the file. No manual scrolling needed. If some pages remain unavailable, the overlay reports exactly how many pages were saved vs. expected.
@@ -57,6 +62,8 @@ content/
   scribd.js     Scribd downloader (embed navigation, print)
   scribd.css    Scribd CSS (unblur, hide paywall)
   gdrive.js     Google Drive engine (slot-based scan, blob capture, verify pass)
+  slideshare.js SlideShare engine (__NEXT_DATA__ + CDN JPEG stitch)
+  slideshare.css SlideShare FAB + overlay
 lib/
   jspdf.umd.min.js  Bundled jsPDF (no CDN, works offline & under CSP)
 test/           Node checks + Drive viewer mock harness (test/mock/)
@@ -81,7 +88,7 @@ Cookie-header stripping is deliberately not used: Chrome MV3 cannot retain only 
 | `downloads` | Support file downloads |
 | `cookies` | Reset Studocu cookies while retaining Cloudflare verification cookies |
 
-Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `drive.google.com`, `*.wikipedia.org` (junk PDF content), and regional Studocu mirrors listed in `manifest.json`.
+Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `*.slideshare.net`, `image.slidesharecdn.com`, `drive.google.com`, `*.wikipedia.org` (junk PDF content), and regional Studocu mirrors listed in `manifest.json`.
 
 ## Credits
 

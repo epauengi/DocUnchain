@@ -173,7 +173,8 @@
         0 12px 34px -14px rgba(47, 130, 232, 0.55);
     }
 
-    .site-status:has(.site-dot.scribd) {
+    .site-status:has(.site-dot.scribd),
+    .site-status:has(.site-dot.slideshare) {
       border-color: rgba(69, 214, 164, 0.38);
       border-left-color: var(--mint);
       box-shadow:
@@ -226,7 +227,8 @@
       animation: dot-ping 1s ease-out 2;
     }
 
-    .site-dot.scribd {
+    .site-dot.scribd,
+    .site-dot.slideshare {
       border-color: var(--mint);
       background: var(--mint);
       box-shadow: 0 0 0 3px rgba(69, 214, 164, 0.18);
@@ -743,7 +745,7 @@
           <span class="brand-tag">Xuất PDF</span>
         </div>
       </div>
-          <span class="badge" id="version-badge">v1.3.0</span>
+          <span class="badge" id="version-badge">v1.4.0</span>
     </header>
 
     <section class="site-status" aria-label="Trạng thái trang hiện tại">
@@ -768,6 +770,10 @@
       <button class="btn-primary scribd hidden" id="btn-scribd" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         Tải PDF Scribd
+      </button>
+      <button class="btn-primary scribd hidden" id="btn-slideshare" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Tải PDF SlideShare
       </button>
       <button class="btn-primary drive hidden" id="btn-drive" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>

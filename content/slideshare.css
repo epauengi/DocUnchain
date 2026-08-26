@@ -1,0 +1,170 @@
+/* ============================================================
+   DocUnchain - SlideShare styles
+   sync with popup.html :root
+   ============================================================ */
+
+.ss-dl-button {
+  position: fixed;
+  right: 22px;
+  bottom: 26px;
+  z-index: 2147483000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 1px solid rgba(110, 226, 183, 0.55);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #16a877 0%, #0c7d59 100%);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    0 12px 30px -12px rgba(22, 168, 119, 0.85);
+  transition: transform 140ms ease, filter 160ms ease, box-shadow 180ms ease;
+}
+
+.ss-dl-button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: currentColor;
+}
+
+.ss-dl-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 14px 34px -12px rgba(27, 187, 134, 0.95);
+}
+
+.ss-dl-button:active {
+  transform: translateY(1px);
+  filter: brightness(0.97);
+}
+
+.ss-dl-button:focus-visible {
+  outline: 2px solid #a9d6ff;
+  outline-offset: 2px;
+}
+
+.ss-dl-button.ss-hidden {
+  display: none !important;
+}
+
+#ss-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 7, 13, 0.94);
+  color: #eef4fb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+#ss-overlay .ss-card {
+  width: 340px;
+  padding: 26px;
+  text-align: center;
+  border: 1px solid rgba(158, 184, 214, 0.32);
+  border-radius: 12px;
+  background: rgba(10, 17, 29, 0.96);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+#ss-overlay .ss-brand {
+  margin-bottom: 6px;
+  color: #45d6a4;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+#ss-overlay .ss-status {
+  margin-bottom: 16px;
+  min-height: 17px;
+  overflow-wrap: anywhere;
+  color: #a5b4c8;
+  font-size: 12.5px;
+}
+
+#ss-overlay .ss-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#ss-overlay .ss-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #0c7d59, #45d6a4);
+  box-shadow: 0 0 10px rgba(69, 214, 164, 0.55);
+  transition: width 0.2s ease;
+}
+
+#ss-overlay .ss-track.ss-indeterminate .ss-fill {
+  width: 34%;
+  animation: ss-slide 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes ss-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(194%); }
+}
+
+#ss-overlay .ss-actions {
+  margin-top: 18px;
+}
+
+#ss-overlay .ss-cancel {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(158, 184, 214, 0.32);
+  border-radius: 10px;
+  background: transparent;
+  color: #a5b4c8;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+#ss-overlay .ss-cancel:hover {
+  background: rgba(158, 184, 214, 0.14);
+  color: #eef4fb;
+}
+
+#ss-overlay .ss-cancel:focus-visible {
+  outline: 2px solid #a9d6ff;
+  outline-offset: 2px;
+}
+
+@media print {
+  .ss-dl-button,
+  #ss-overlay {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ss-overlay .ss-fill {
+    animation: none;
+    transition: none;
+  }
+  .ss-dl-button {
+    transition: none;
+  }
+  .ss-dl-button:hover,
+  .ss-dl-button:active {
+    transform: none;
+  }
+}

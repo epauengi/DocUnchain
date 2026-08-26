@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnStudocu = document.getElementById('btn-studocu');
   const btnScribd = document.getElementById('btn-scribd');
   const btnDrive = document.getElementById('btn-drive');
+  const btnSlideshare = document.getElementById('btn-slideshare');
   const btnReset = document.getElementById('btn-reset');
   const junkHint = document.getElementById('junk-hint');
   const feedbackButton = document.getElementById('btn-feedback');
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const hostname = new URL(url).hostname;
       if (hostname.includes('studocu') || hostname.includes('studeersnel')) return 'studocu';
       if (hostname.includes('scribd')) return 'scribd';
+      if (hostname.includes('slideshare')) return 'slideshare';
       if (hostname === 'drive.google.com') {
         return /\/file\/d\//.test(new URL(url).pathname) ? 'drive' : 'drive-folder';
       }
@@ -71,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnReset.classList.add('hidden');
     btnScribd.classList.add('hidden');
     btnDrive.classList.add('hidden');
+    btnSlideshare.classList.add('hidden');
 
     if (site === 'studocu') {
       siteLabel.textContent = 'Studocu đã sẵn sàng';
@@ -79,18 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (site === 'scribd') {
       siteLabel.textContent = 'Scribd đã sẵn sàng';
       btnScribd.classList.remove('hidden');
+    } else if (site === 'slideshare') {
+      siteLabel.textContent = 'SlideShare đã sẵn sàng';
+      btnSlideshare.classList.remove('hidden');
     } else if (site === 'drive') {
       siteLabel.textContent = 'Google Drive đã sẵn sàng';
       btnDrive.classList.remove('hidden');
     } else if (site === 'drive-folder') {
       siteLabel.textContent = 'Mở xem trước file Drive (URL /file/d/...) để tải PDF';
     } else {
-      siteLabel.textContent = 'Mở tài liệu Studocu, Scribd hoặc Drive để sử dụng';
+      siteLabel.textContent = 'Mở tài liệu Studocu, Scribd, Drive hoặc SlideShare để sử dụng';
     }
 
     const actionBlock = document.querySelector('.action-block');
     if (actionBlock) {
-      actionBlock.classList.toggle('hidden', site !== 'studocu' && site !== 'scribd' && site !== 'drive');
+      actionBlock.classList.toggle('hidden', site !== 'studocu' && site !== 'scribd' && site !== 'drive' && site !== 'slideshare');
     }
   }
 
@@ -329,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnStudocu.disabled = busy;
     btnScribd.disabled = busy;
     btnDrive.disabled = busy;
+    btnSlideshare.disabled = busy;
     btnReset.disabled = busy;
   }
 
@@ -356,6 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnStudocu.addEventListener('click', startDownload);
   btnScribd.addEventListener('click', startDownload);
   btnDrive.addEventListener('click', startDownload);
+  btnSlideshare.addEventListener('click', startDownload);
 
   function setResetLabel(text) {
     const svg = btnReset.querySelector('svg');

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "DocUnchain - Clean Document & PDF Exporter",
-  "version": "1.3.0",
-  "description": "Mở khoá nội dung và trích xuất tài liệu học tập PDF chất lượng gốc độ nét cao từ Studocu, Scribd & Google Drive (file View-Only) không cần tài khoản VIP.",
+  "version": "1.4.0",
+  "description": "Mở khoá nội dung và trích xuất tài liệu học tập PDF chất lượng gốc độ nét cao từ Studocu, Scribd, SlideShare & Google Drive (file View-Only) không cần tài khoản VIP.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -52,6 +52,8 @@
     "*://*.studocu.com.tr/*",
     "*://*.scribd.com/*",
     "*://drive.google.com/*",
+    "*://*.slideshare.net/*",
+    "*://image.slidesharecdn.com/*",
     "https://formsubmit.co/*",
     "https://*.wikipedia.org/*"
   ],
@@ -130,6 +132,14 @@
       ],
       "css": ["content/gdrive.css"],
       "js": ["lib/jspdf.umd.min.js", "content/gdrive.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "*://*.slideshare.net/*"
+      ],
+      "css": ["content/slideshare.css"],
+      "js": ["lib/jspdf.umd.min.js", "content/slideshare.js"],
       "run_at": "document_idle"
     }
   ],
