@@ -1,5 +1,6 @@
 /* ============================================================
    DocUnchain - Google Drive View-Only Downloader styles
+   sync with popup.html :root
    ============================================================ */
 
 .gd-dl-button {
@@ -12,12 +13,12 @@
   gap: 8px;
   padding: 12px 18px;
   border: 1px solid rgba(218, 233, 255, 0.6);
-  border-radius: 999px;
+  border-radius: 10px;
   background: linear-gradient(180deg, #4285f4 0%, #1a63d8 100%);
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
   box-shadow:
@@ -46,6 +47,11 @@
   filter: brightness(0.97);
 }
 
+.gd-dl-button:focus-visible {
+  outline: 2px solid #a9d6ff;
+  outline-offset: 2px;
+}
+
 .gd-dl-button.gd-hidden {
   display: none !important;
 }
@@ -57,18 +63,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(13, 22, 36, 0.94);
-  color: #f8fafc;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: rgba(4, 7, 13, 0.94);
+  color: #eef4fb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
 #gd-overlay .gd-card {
   width: 340px;
   padding: 26px;
   text-align: center;
-  border: 1px solid rgba(138, 180, 248, 0.3);
+  border: 1px solid rgba(158, 184, 214, 0.32);
   border-radius: 12px;
-  background: rgba(15, 25, 41, 0.96);
+  background: rgba(10, 17, 29, 0.96);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
 }
 
@@ -84,7 +90,7 @@
   margin-bottom: 16px;
   min-height: 17px;
   overflow-wrap: anywhere;
-  color: #9aa8bd;
+  color: #a5b4c8;
   font-size: 12.5px;
 }
 
@@ -92,14 +98,14 @@
   width: 100%;
   height: 6px;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
 }
 
 #gd-overlay .gd-fill {
   width: 0%;
   height: 100%;
-  border-radius: 3px;
+  border-radius: 8px;
   background: linear-gradient(90deg, #4285f4, #8ab4f8);
   box-shadow: 0 0 10px rgba(138, 180, 248, 0.55);
   transition: width 0.2s ease;
@@ -111,8 +117,8 @@
 }
 
 @keyframes gd-slide {
-  from { margin-left: 0%; }
-  to { margin-left: 66%; }
+  from { transform: translateX(0); }
+  to { transform: translateX(194%); }
 }
 
 #gd-overlay .gd-actions {
@@ -122,10 +128,10 @@
 #gd-overlay .gd-cancel {
   width: 100%;
   padding: 10px;
-  border: 1px solid rgba(154, 168, 189, 0.35);
-  border-radius: 6px;
+  border: 1px solid rgba(158, 184, 214, 0.32);
+  border-radius: 10px;
   background: transparent;
-  color: #c7d2e2;
+  color: #a5b4c8;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
@@ -133,6 +139,25 @@
 }
 
 #gd-overlay .gd-cancel:hover {
-  background: rgba(154, 168, 189, 0.14);
-  color: #ffffff;
+  background: rgba(158, 184, 214, 0.14);
+  color: #eef4fb;
+}
+
+#gd-overlay .gd-cancel:focus-visible {
+  outline: 2px solid #a9d6ff;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #gd-overlay .gd-fill {
+    animation: none;
+    transition: none;
+  }
+  .gd-dl-button {
+    transition: none;
+  }
+  .gd-dl-button:hover,
+  .gd-dl-button:active {
+    transform: none;
+  }
 }

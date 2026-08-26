@@ -242,10 +242,10 @@ div[id^="google_ads_iframe"],
   background: linear-gradient(180deg, #2b83ea 0%, #1668d6 100%);
   color: #fff;
   border: 1px solid rgba(140, 196, 255, 0.55);
-  border-radius: 11px;
+  border-radius: 10px;
   padding: 10px 24px;
   font-size: 13.5px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.01em;
   display: flex;
   align-items: center;

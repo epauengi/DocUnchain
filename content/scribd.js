@@ -185,21 +185,12 @@
     if (!overlay) {
       overlay = document.createElement('div');
       overlay.id = 'scribd-embed-overlay';
-      overlay.style.cssText = `
-        position: fixed; inset: 0; z-index: 2147483647;
-        background: rgba(15, 23, 42, 0.95);
-        display: flex; align-items: center; justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        color: #f8fafc;
-      `;
       overlay.innerHTML = `
-        <div style="background: rgba(18, 24, 38, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 26px; width: 340px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.7);">
-          <div style="font-size: 15px; font-weight: 700; color: #34d399; margin-bottom: 6px; letter-spacing: -0.01em;">DocUnchain</div>
-          <div style="font-size: 12.5px; color: #94a3b8; margin-bottom: 16px;" id="sd-status">Đang khởi tạo...</div>
-          <div style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
-            <div id="sd-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); box-shadow: 0 0 10px rgba(52, 211, 153, 0.5); transition: width 0.2s;"></div>
-          </div>
-          <div id="sd-action-container" style="margin-top: 16px;"></div>
+        <div class="sd-card">
+          <div class="sd-brand">DocUnchain</div>
+          <div class="sd-status" id="sd-status" role="status" aria-live="polite">Đang khởi tạo...</div>
+          <div class="sd-track"><div class="sd-fill" id="sd-progress-bar"></div></div>
+          <div class="sd-actions" id="sd-action-container"></div>
         </div>
       `;
       document.body.appendChild(overlay);
@@ -222,11 +213,9 @@
     const origUrl = params.get('original_url');
 
     const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sd-return';
     btn.textContent = 'Quay lại trang tài liệu';
-    btn.style.cssText = `
-      width: 100%; padding: 10px; border-radius: 6px; border: none;
-      background: #10864c; color: #fff; font-weight: 600; cursor: pointer;
-    `;
     btn.onclick = () => {
       if (origUrl) {
         window.location.href = decodeURIComponent(origUrl);
@@ -243,7 +232,8 @@
 
     const count = await scrollAndLoadPages();
     if (count === 0) {
-      if (overlay) overlay.remove();
+      updateOverlay('Không tìm thấy trang tài liệu. Hãy tải lại rồi thử lại.', 0);
+      addReturnButton();
       return;
     }
 
@@ -258,7 +248,7 @@
 
     setTimeout(() => {
       window.print();
-      updateOverlay('Hoàn thành xuất PDF!', 100);
+      updateOverlay('Hoàn thành xuất PDF.', 100);
       addReturnButton();
     }, 400);
   }
@@ -272,13 +262,14 @@
     const docId = match[1];
 
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.id = 'scribd-dl-btn-native';
     btn.className = 'scribd-dl-button';
     btn.innerHTML = `
-      <svg viewBox="0 0 24 24">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
       </svg>
-      <span>Tải PDF Scribd Không Cần Đăng Nhập</span>
+      <span>Tải PDF Scribd</span>
     `;
 
     btn.addEventListener('click', (e) => {

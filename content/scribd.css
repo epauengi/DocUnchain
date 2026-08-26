@@ -1,5 +1,6 @@
 /* ============================================================
    DocUnchain - Scribd Styles
+   sync with popup.html :root
    ============================================================ */
 
 /* 1. Gỡ bỏ blur và mở khoá nội dung */
@@ -50,10 +51,10 @@
   background: linear-gradient(180deg, #16a877 0%, #0c7d59 100%);
   color: #ffffff;
   border: 1px solid rgba(110, 226, 183, 0.55);
-  border-radius: 11px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  border-radius: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   font-size: 13.5px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
   box-shadow:
@@ -96,55 +97,99 @@
   fill: currentColor;
 }
 
-/* 4. Notification Toast cho Scribd */
-#scribd-dl-toast {
+/* 4. Overlay tiến trình trên trang Embed */
+#scribd-embed-overlay {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  inset: 0;
   z-index: 2147483647;
-  background: rgba(8, 13, 22, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(69, 214, 164, 0.38);
-  color: #eef4fb;
-  padding: 12px 18px;
-  border-radius: 11px;
-  box-shadow: 0 16px 40px -14px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 13px;
-  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 10px;
-  max-width: 380px;
-  animation: passScribdSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  justify-content: center;
+  background: rgba(4, 7, 13, 0.94);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  color: #eef4fb;
 }
 
-@keyframes passScribdSlide {
-  from { transform: translateY(-10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+#scribd-embed-overlay .sd-card {
+  width: 340px;
+  padding: 26px;
+  text-align: center;
+  border: 1px solid rgba(69, 214, 164, 0.32);
+  border-radius: 12px;
+  background: rgba(10, 17, 29, 0.96);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
 }
 
-.scribd-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(52, 211, 153, 0.25);
-  border-top-color: #34d399;
-  border-radius: 50%;
-  animation: scribdRotate 0.6s linear infinite;
-  flex-shrink: 0;
+#scribd-embed-overlay .sd-brand {
+  margin-bottom: 6px;
+  color: #45d6a4;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-@keyframes scribdRotate {
-  to { transform: rotate(360deg); }
+#scribd-embed-overlay .sd-status {
+  margin-bottom: 16px;
+  min-height: 17px;
+  color: #a5b4c8;
+  font-size: 12.5px;
+}
+
+#scribd-embed-overlay .sd-track {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+#scribd-embed-overlay .sd-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #0f8f66, #45d6a4);
+  box-shadow: 0 0 10px rgba(69, 214, 164, 0.5);
+  transition: width 0.2s ease;
+}
+
+#scribd-embed-overlay .sd-actions {
+  margin-top: 16px;
+}
+
+#scribd-embed-overlay .sd-return {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(110, 226, 183, 0.55);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #16a877 0%, #0c7d59 100%);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#scribd-embed-overlay .sd-return:hover {
+  filter: brightness(1.05);
+}
+
+#scribd-embed-overlay .sd-return:focus-visible {
+  outline: 2px solid #a7f3d0;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #scribd-embed-overlay .sd-fill { transition: none; }
+  .scribd-dl-button { transition: none; }
+  .scribd-dl-button:hover,
+  .scribd-dl-button:active { transform: none; }
 }
 
 /* 5. Ẩn tất cả nút bấm và thanh công cụ khi in */
 @media print {
   .scribd-dl-button,
   #scribd-dl-btn-native,
-  #scribd-dl-toast,
-  #scribd-dl-overlay-box {
+  #scribd-embed-overlay {
     display: none !important;
   }
 }

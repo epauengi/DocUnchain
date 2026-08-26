@@ -686,7 +686,7 @@
     overlay.innerHTML = `
       <div class="gd-card">
         <div class="gd-brand">DocUnchain</div>
-        <div class="gd-status"></div>
+        <div class="gd-status" role="status" aria-live="polite"></div>
         <div class="gd-track gd-indeterminate"><div class="gd-fill"></div></div>
         <div class="gd-actions"><button type="button" class="gd-cancel">Hủy</button></div>
       </div>`;
@@ -730,7 +730,12 @@
   async function run() {
     if (running) return;
     if (!hasPreviewContext()) {
-      alert('DocUnchain: Hãy mở xem trước tài liệu trên Google Drive (URL dạng /file/d/...) rồi bấm tải lại.');
+      showOverlay();
+      overlayInError = true;
+      setStatus('Hãy mở xem trước tài liệu trên Google Drive (URL dạng /file/d/...) rồi bấm tải lại.');
+      setProgress(null);
+      const cancelBtn = overlay.querySelector('.gd-cancel');
+      if (cancelBtn) cancelBtn.textContent = 'Đóng';
       return;
     }
 
@@ -786,7 +791,7 @@
       const shortfall = exp > 0 && pages.length < exp
         ? ` (Drive báo ${exp} trang — hãy thử tải lại nếu còn thiếu)`
         : '';
-      setStatus(`Hoàn tất! Đã lưu ${pages.length} trang.${shortfall}`);
+      setStatus(`Hoàn tất. Đã lưu ${pages.length} trang.${shortfall}`);
       setProgress(100);
       log('Lưu PDF thành công:', pages.length, 'trang.', exp ? `(UI: ${exp})` : '');
       setTimeout(closeOverlay, 3200);

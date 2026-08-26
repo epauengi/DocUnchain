@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnScribd = document.getElementById('btn-scribd');
   const btnDrive = document.getElementById('btn-drive');
   const btnReset = document.getElementById('btn-reset');
-  const btnNone = document.getElementById('btn-none');
+  const junkHint = document.getElementById('junk-hint');
   const feedbackButton = document.getElementById('btn-feedback');
   const feedbackDialog = document.getElementById('feedback-dialog');
   const feedbackForm = document.getElementById('feedback-form');
@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let feedbackSending = false;
   let feedbackCloseTimer = null;
   let junkBusy = false;
+  let downloadBusy = false;
+  let resetArmed = false;
+  let resetTimer = null;
+  const RESET_LABEL = 'Reset phiên Studocu';
+  const RESET_CONFIRM = 'Xác nhận reset?';
 
   try {
     const manifest = chrome.runtime.getManifest();
@@ -49,7 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const hostname = new URL(url).hostname;
       if (hostname.includes('studocu') || hostname.includes('studeersnel')) return 'studocu';
       if (hostname.includes('scribd')) return 'scribd';
-      if (hostname === 'drive.google.com') return 'drive';
+      if (hostname === 'drive.google.com') {
+        return /\/file\/d\//.test(new URL(url).pathname) ? 'drive' : 'drive-folder';
+      }
       return null;
     } catch (e) {
       return null;
@@ -57,8 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function showSite(site) {
-    siteDot.className = 'site-dot ' + (site || 'none');
-    siteLabel.className = 'site-label' + (site ? ' ' + site : '');
+    const tone = site === 'drive-folder' ? 'none' : (site || 'none');
+    siteDot.className = 'site-dot ' + tone;
+    siteLabel.className = 'site-label' + (tone !== 'none' ? ' ' + tone : '');
+    btnStudocu.classList.add('hidden');
+    btnReset.classList.add('hidden');
+    btnScribd.classList.add('hidden');
+    btnDrive.classList.add('hidden');
 
     if (site === 'studocu') {
       siteLabel.textContent = 'Studocu đã sẵn sàng';
@@ -70,9 +82,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (site === 'drive') {
       siteLabel.textContent = 'Google Drive đã sẵn sàng';
       btnDrive.classList.remove('hidden');
+    } else if (site === 'drive-folder') {
+      siteLabel.textContent = 'Mở xem trước file Drive (URL /file/d/...) để tải PDF';
     } else {
       siteLabel.textContent = 'Mở tài liệu Studocu, Scribd hoặc Drive để sử dụng';
-      btnNone.classList.remove('hidden');
+    }
+
+    const actionBlock = document.querySelector('.action-block');
+    if (actionBlock) {
+      actionBlock.classList.toggle('hidden', site !== 'studocu' && site !== 'scribd' && site !== 'drive');
     }
   }
 
@@ -292,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setCooldownUntil(Date.now() + DOCUNCHAIN_FEEDBACK_CONFIG.COOLDOWN_MS);
       feedbackMessage.value = '';
       updateFeedbackCounter();
-      showFeedbackStatus('Đã gửi báo lỗi. Cảm ơn bạn đã phản hồi!', 'success');
+      showFeedbackStatus('Đã gửi báo lỗi. Cảm ơn bạn đã phản hồi.', 'success');
       setFeedbackControls(false);
       feedbackCloseTimer = setTimeout(closeFeedback, 1800);
     } catch (error) {
@@ -306,44 +324,77 @@ document.addEventListener('DOMContentLoaded', () => {
     .then((tab) => showSite(getSiteType(tab ? tab.url : '')))
     .catch(() => showSite(null));
 
-  // Tải PDF (Studocu)
-  btnStudocu.addEventListener('click', async () => {
-    const tab = await getActiveTab();
-    if (!tab) return;
-    siteLabel.textContent = 'Đang kết xuất PDF...';
-    chrome.tabs.sendMessage(tab.id, { action: 'START_DOWNLOAD' }, () => {
-      window.close();
-    });
-  });
+  function setDownloadBusy(busy) {
+    downloadBusy = busy;
+    btnStudocu.disabled = busy;
+    btnScribd.disabled = busy;
+    btnDrive.disabled = busy;
+    btnReset.disabled = busy;
+  }
 
-  // Tải PDF (Scribd)
-  btnScribd.addEventListener('click', async () => {
+  async function startDownload() {
+    if (downloadBusy) return;
     const tab = await getActiveTab();
-    if (!tab) return;
-    siteLabel.textContent = 'Đang kết xuất PDF...';
+    if (!tab || !Number.isInteger(tab.id)) {
+      siteLabel.textContent = 'Không đọc được tab hiện tại.';
+      return;
+    }
+    setDownloadBusy(true);
+    siteLabel.textContent = 'Đang gửi lệnh...';
     chrome.tabs.sendMessage(tab.id, { action: 'START_DOWNLOAD' }, () => {
-      window.close();
+      const err = chrome.runtime.lastError;
+      if (err) {
+        setDownloadBusy(false);
+        siteLabel.textContent = 'Không gửi được lệnh. Tải lại trang rồi thử lại.';
+        return;
+      }
+      siteLabel.textContent = 'Đang kết xuất PDF...';
+      setTimeout(() => window.close(), 300);
     });
-  });
+  }
 
-  // Tải PDF (Google Drive View-Only)
-  btnDrive.addEventListener('click', async () => {
-    const tab = await getActiveTab();
-    if (!tab) return;
-    siteLabel.textContent = 'Đang kết xuất PDF...';
-    chrome.tabs.sendMessage(tab.id, { action: 'START_DOWNLOAD' }, () => {
-      window.close();
-    });
-  });
+  btnStudocu.addEventListener('click', startDownload);
+  btnScribd.addEventListener('click', startDownload);
+  btnDrive.addEventListener('click', startDownload);
 
-  // Reset phiên Studocu (xoá cookie + reload)
+  function setResetLabel(text) {
+    const svg = btnReset.querySelector('svg');
+    btnReset.textContent = text;
+    if (svg) btnReset.prepend(svg);
+  }
+
+  // Reset phiên Studocu (xoá cookie + reload). Two-click confirm.
   btnReset.addEventListener('click', async () => {
+    if (downloadBusy) return;
+    if (!resetArmed) {
+      resetArmed = true;
+      setResetLabel(RESET_CONFIRM);
+      resetTimer = setTimeout(() => {
+        resetArmed = false;
+        resetTimer = null;
+        setResetLabel(RESET_LABEL);
+      }, 4000);
+      return;
+    }
+    resetArmed = false;
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+      resetTimer = null;
+    }
+
     const tab = await getActiveTab();
-    if (!tab) return;
-    siteLabel.textContent = 'Đang xoá cookie & tải lại trang...';
+    if (!tab) {
+      setResetLabel(RESET_LABEL);
+      siteLabel.textContent = 'Không đọc được tab hiện tại.';
+      return;
+    }
+    setDownloadBusy(true);
+    siteLabel.textContent = 'Đang xoá cookie và tải lại trang...';
     try {
       const resp = await chrome.runtime.sendMessage({ action: 'CLEAR_COOKIES' });
       if (!resp || !resp.ok) {
+        setDownloadBusy(false);
+        setResetLabel(RESET_LABEL);
         siteLabel.textContent = 'Lỗi: ' + (resp && resp.error ? resp.error : 'Không thể xoá cookie.');
         return;
       }
@@ -353,6 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.close();
       }, 600);
     } catch (err) {
+      setDownloadBusy(false);
+      setResetLabel(RESET_LABEL);
       siteLabel.textContent = 'Lỗi: ' + err.message;
     }
   });
@@ -380,6 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     junkBusy = true;
     btnJunk.disabled = true;
+    if (junkHint) junkHint.hidden = true;
     setJunkStatus('Đang chuẩn bị…');
 
     try {
@@ -398,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       junkBusy = false;
       btnJunk.disabled = false;
+      if (junkHint) junkHint.hidden = false;
     }
   });
 });

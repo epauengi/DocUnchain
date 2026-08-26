@@ -768,26 +768,30 @@
     if (document.getElementById('sh-dl-style')) return;
     const style = document.createElement('style');
     style.id = 'sh-dl-style';
+    /* sync with popup.html :root */
     style.textContent =
-      '#sh-dl-overlay{position:fixed;inset:0;z-index:2147483647;background:#525659;overflow:auto;}' +
+      '#sh-dl-overlay{position:fixed;inset:0;z-index:2147483647;background:#0a111d;overflow:auto;color:#eef4fb;}' +
       '#sh-dl-overlay .sh-dl-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;' +
-      'justify-content:space-between;gap:12px;background:#1a1a2e;color:#fff;padding:10px 20px;' +
-      "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}" +
+      'justify-content:space-between;gap:12px;background:#04070d;color:#eef4fb;padding:10px 20px;' +
+      "border-bottom:1px solid rgba(158,184,214,.14);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}" +
       '#sh-dl-overlay .sh-dl-bar .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
       '#sh-dl-overlay .sh-dl-bar .actions{display:flex;gap:8px;flex-shrink:0;}' +
-      '#sh-dl-overlay .sh-dl-bar button{border:0;border-radius:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;}' +
-      '#sh-dl-overlay .sh-dl-print{background:#0284c7;color:#fff;}' +
-      '#sh-dl-overlay .sh-dl-close{background:#444;color:#fff;}' +
+      '#sh-dl-overlay .sh-dl-bar button{border:1px solid rgba(158,184,214,.32);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;}' +
+      '#sh-dl-overlay .sh-dl-bar button:focus-visible{outline:2px solid #a9d6ff;outline-offset:2px;}' +
+      '#sh-dl-overlay .sh-dl-bar button:disabled{opacity:.52;cursor:default;}' +
+      '#sh-dl-overlay .sh-dl-print{background:linear-gradient(180deg,#2b83ea,#1668d6);color:#fff;border-color:rgba(140,196,255,.55);}' +
+      '#sh-dl-overlay .sh-dl-close{background:rgba(255,255,255,.06);color:#a5b4c8;}' +
       '#sh-dl-overlay .sh-dl-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-      'gap:16px;height:78vh;color:#fff;font-family:sans-serif;}' +
-      '#sh-dl-overlay .sh-dl-loading .bar{width:320px;height:10px;background:#33334d;border-radius:6px;overflow:hidden;}' +
-      '#sh-dl-overlay .sh-dl-loading .fill{height:100%;width:0;background:#0284c7;transition:width .2s;}' +
+      'gap:16px;height:78vh;color:#eef4fb;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}' +
+      '#sh-dl-overlay .sh-dl-loading .bar{width:320px;height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden;}' +
+      '#sh-dl-overlay .sh-dl-loading .fill{height:100%;width:0;background:#1f7ae0;transition:width .2s;}' +
       '#sh-dl-overlay .sh-dl-pages .p2hv{margin:0 auto;}' +
       '#sh-dl-overlay .sh-dl-pages .pf{margin:12px auto !important;background:#fff !important;' +
       'box-shadow:0 2px 8px rgba(0,0,0,.4);display:block !important;filter:none !important;opacity:1 !important;}' +
       '#sh-dl-overlay .sh-dl-pages .page-content,#sh-dl-overlay .sh-dl-pages .pc{' +
       'display:block !important;visibility:visible !important;filter:none !important;opacity:1 !important;}' +
       '#sh-dl-overlay .sh-dl-pages .pf img{filter:none !important;opacity:1 !important;visibility:visible !important;}' +
+      '@media (prefers-reduced-motion:reduce){#sh-dl-overlay .sh-dl-loading .fill{transition:none;}}' +
       '@media print{' +
       'body > *:not(#sh-dl-overlay){display:none !important;}' +
       'html,body{background:#fff !important;height:auto !important;overflow:visible !important;}' +
@@ -812,12 +816,13 @@
     const actions = document.createElement('div');
     actions.className = 'actions';
     const printBtn = document.createElement('button');
+    printBtn.type = 'button';
     printBtn.className = 'sh-dl-print';
     printBtn.textContent = 'In / Lưu PDF';
     printBtn.disabled = true;
-    printBtn.style.opacity = '0.5';
     printBtn.addEventListener('click', () => window.print());
     const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
     closeBtn.className = 'sh-dl-close';
     closeBtn.textContent = 'Đóng';
     closeBtn.addEventListener('click', () => overlay.remove());
@@ -847,18 +852,20 @@
     overlay.appendChild(bar);
     overlay.appendChild(loading);
     overlay.appendChild(pages);
-    return { overlay, fill, sub, loading, pages, printBtn };
+    return { overlay, fill, sub, loading, pages, printBtn, msg };
   }
 
   function generatePDF() {
     const title = getTitle();
-    if (!document.querySelector('.p2hv') || document.querySelectorAll('.pf').length === 0) {
-      alert('DocUnchain: Không tìm thấy trang tài liệu. Hãy cuộn tài liệu rồi thử lại.');
-      return;
-    }
     injectOverlayStyles();
     const ui = createOverlay(title);
     document.body.appendChild(ui.overlay);
+    if (!document.querySelector('.p2hv') || document.querySelectorAll('.pf').length === 0) {
+      ui.msg.textContent = 'Không tìm thấy trang tài liệu.';
+      ui.sub.textContent = 'Hãy cuộn tài liệu rồi thử lại.';
+      ui.fill.parentNode.style.display = 'none';
+      return;
+    }
     const pattern = getImagePattern();
 
     // Tính tỉ lệ phóng to/thu nhỏ trang pdf2htmlEX cho vừa khít khổ A4
@@ -899,7 +906,6 @@
         }
       }
       ui.printBtn.disabled = false;
-      ui.printBtn.style.opacity = '1';
     }).catch(() => {
       ui.sub.textContent = 'Không thể tạo tài liệu. Hãy tải lại trang và thử lại.';
     });
@@ -908,15 +914,16 @@
   // ========== Download Button Injection ==========
   function createButton() {
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.classList.add('download-button-1');
     btn.setAttribute('data-studocuhack', 'download');
+    btn.setAttribute('aria-label', 'Tải PDF Studocu');
     const icon = document.createElement('span');
     icon.setAttribute('aria-hidden', 'true');
-    icon.textContent = '⤓';
-    icon.style.cssText = 'font-size:16px;line-height:1;';
+    icon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>';
     const label = document.createElement('span');
     label.classList.add('download-text');
-    label.textContent = 'Tải PDF miễn phí';
+    label.textContent = 'Tải PDF Studocu';
     btn.appendChild(icon);
     btn.appendChild(label);
     return btn;

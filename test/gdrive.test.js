@@ -8,7 +8,8 @@ const popupHtml = fs.readFileSync('popup/popup.html', 'utf8');
 const css = fs.readFileSync('content/gdrive.css', 'utf8');
 
 // Manifest wiring
-assert.match(manifest.version, /^1\.2\./);assert.ok(manifest.host_permissions.includes('*://drive.google.com/*'));
+assert.match(manifest.version, /^1\.3\./);
+assert.ok(manifest.host_permissions.includes('*://drive.google.com/*'));
 const driveEntry = manifest.content_scripts.find((cs) => cs.matches.includes('*://drive.google.com/*'));
 assert.ok(driveEntry, 'Drive content script must be registered');
 assert.deepEqual(driveEntry.js, ['lib/jspdf.umd.min.js', 'content/gdrive.js']);
