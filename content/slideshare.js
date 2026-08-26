@@ -2,7 +2,9 @@
    DocUnchain - SlideShare PDF Exporter
 
    Ảnh slide trên CDN (image.slidesharecdn.com), không print-DOM.
-   Metadata từ #__NEXT_DATA__; fallback srcset DOM.
+   Metadata từ #__NEXT_DATA__; fallback img CDN (testid cũ đã chết).
+   Bytes qua SW FETCH_SLIDE — content script bị CORS.
+   Fastly 2048 thường WebP dù URL .jpg — Blob không gán image/jpeg.
    jsPDF local — không CDN. Engine Studocu/Scribd/Drive không đụng.
    ponytail: extract stitch helper when a 3rd image-stitch site lands.
    ============================================================ */
@@ -72,7 +74,7 @@
       const n = Math.min(total, MAX_SLIDES);
       const urls = [];
       for (let i = 1; i <= n; i++) {
-        urls.push(`${host}/${loc}/${quality}/${slideTitle}-${i}-${width}.jpg`);
+        urls.push(`${host}/${loc}/${quality}/${encodeURI(`${slideTitle}-${i}-${width}.jpg`)}`);
       }
       return { title: show.title || slideTitle, total: n, urls };
     } catch (e) {
@@ -88,21 +90,31 @@
     return t ? Number(t[1]) : 0;
   }
 
+  function bumpToHd(url) {
+    return String(url)
+      .replace(/\/85\//, '/75/')
+      .replace(/-(\d+)-(320|638)\.jpg/i, '-$1-2048.jpg');
+  }
+
   function parseFromDom() {
     const nodes = document.querySelectorAll(
-      'img[data-testid="vertical-slide-image"], source[data-testid="slide-image-source"]'
+      'img[data-testid="vertical-slide-image"], source[data-testid="slide-image-source"], img[src*="slidesharecdn.com"], img[src*="sscdn.co"], img[srcset*="slidesharecdn.com"]'
     );
     let sample = '';
     for (const el of nodes) {
       sample = largestFromSrcset(el.getAttribute('srcset')) || el.getAttribute('src') || '';
       if (/-\d+-\d+\.jpg/i.test(sample)) break;
     }
-    const m = sample.match(/^(https?:\/\/image\.slidesharecdn\.com\/.+)-(\d+)-(\d+)\.jpg(\?.*)?$/i);
+    sample = bumpToHd(sample);
+    const m = sample.match(
+      /^(https?:\/\/(?:(?:[\w.-]+\.)?slidesharecdn\.com|sscdn\.co)\/.+)-(\d+)-(\d+)\.jpg(\?.*)?$/i
+    );
     if (!m) return null;
     const prefix = m[1];
     const width = m[3];
     const qs = m[4] || '';
-    let total = guessTotal() || nodes.length;
+    let total = guessTotal();
+    if (!total) return null;
     total = Math.min(Math.max(total, 1), MAX_SLIDES);
     const urls = [];
     for (let i = 1; i <= total; i++) {
@@ -133,13 +145,46 @@
     return { data, width, height };
   }
 
+  function fromBase64(value) {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  async function fetchBytes(url) {
+    const resp = await chrome.runtime.sendMessage({ action: 'FETCH_SLIDE', url });
+    if (!resp || !resp.ok || !resp.base64) {
+      const err = new Error((resp && resp.error) || 'fetch-failed');
+      err.status = resp && resp.status;
+      throw err;
+    }
+    return resp;
+  }
+
   async function fetchSlide(url) {
-    const res = await fetch(url, { credentials: 'omit', cache: 'force-cache' });
-    if (!res.ok) throw new Error('http-' + res.status);
-    const blob = await res.blob();
-    if (!blob || blob.size < 64) throw new Error('empty-blob');
+    const resp = await fetchBytes(url);
+    const blob = new Blob([fromBase64(resp.base64)], { type: resp.type || '' });
     const bmp = await createImageBitmap(blob);
     return encodeBitmap(bmp);
+  }
+
+  async function resolveUrls(urls) {
+    if (!urls.length) return urls;
+    try {
+      await fetchBytes(urls[0]);
+      return urls;
+    } catch (e) {
+      if (!e || e.status !== 404) return urls;
+    }
+    const dom = parseFromDom();
+    if (dom && dom.urls.length) {
+      try {
+        await fetchBytes(dom.urls[0]);
+        return dom.urls;
+      } catch (err) {}
+    }
+    return urls;
   }
 
   async function mapPool(urls, onEach) {
@@ -245,7 +290,12 @@
     setProgress(0);
 
     try {
-      const pages = await mapPool(meta.urls, (done, total) => {
+      const urls = await resolveUrls(meta.urls);
+      if (cancelled) {
+        closeOverlay();
+        return;
+      }
+      const pages = await mapPool(urls, (done, total) => {
         setStatus('Đang nạp slide ' + done + '/' + total + '…');
         setProgress((done / total) * 90);
       });

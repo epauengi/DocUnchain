@@ -3,7 +3,7 @@
 > Unlock and export study documents from Studocu, Scribd, SlideShare & Google Drive as high-quality PDFs, no VIP account required.
 
 ![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
-![Version](https://img.shields.io/badge/version-1.4.0-green?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.4.1-green?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
 
 ## Features
@@ -40,7 +40,7 @@ Open a Scribd document page, click the extension icon, then press **Tải PDF Sc
 
 ### SlideShare
 
-Open a presentation (`https://www.slideshare.net/slideshow/...` or `/{user}/{slug}`), click **Tải PDF SlideShare** in the popup or the floating button. The extension reads slide metadata from the page, fetches full-resolution JPEGs from SlideShare's CDN, and saves a multi-page PDF named after the deck. Homepage/search pages have no FAB.
+Open a presentation (`https://www.slideshare.net/slideshow/...` or `/{user}/{slug}`), click **Tải PDF SlideShare** in the popup or the floating button. The extension reads slide metadata from the page, fetches full-resolution JPEGs from SlideShare's CDN **via the service worker** (content scripts cannot cross CDN CORS), and saves a multi-page PDF named after the deck. Homepage/search pages have no FAB.
 
 ### Google Drive (View-Only)
 
@@ -55,7 +55,7 @@ Open the extension popup on any tab. In **Junk PDF**, set file count, pages per 
 ```
 popup/          Popup UI (site detection, command dispatch, junk PDF)
   junk-pdf.js   Wikipedia filler → jsPDF generator
-background.js   Service worker (Cloudflare-safe cookie clearing)
+background.js   Service worker (cookie reset + SlideShare CDN fetch relay)
 content/
   content.js    Studocu engine (unblur, text/image injection, PDF export)
   content.css   CSS for blur removal and hiding extra elements
@@ -88,7 +88,7 @@ Cookie-header stripping is deliberately not used: Chrome MV3 cannot retain only 
 | `downloads` | Support file downloads |
 | `cookies` | Reset Studocu cookies while retaining Cloudflare verification cookies |
 
-Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `*.slideshare.net`, `image.slidesharecdn.com`, `drive.google.com`, `*.wikipedia.org` (junk PDF content), and regional Studocu mirrors listed in `manifest.json`.
+Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `*.slideshare.net`, `*.slidesharecdn.com`, `sscdn.co`, `drive.google.com`, `*.wikipedia.org` (junk PDF content), and regional Studocu mirrors listed in `manifest.json`.
 
 ## Credits
 
