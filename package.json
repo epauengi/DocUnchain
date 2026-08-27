@@ -1,10 +1,10 @@
 {
   "name": "docunchain",
   "version": "1.5.0",
-  "description": "DocUnchain - export authorized Studocu, Scribd, SlideShare and Google Drive documents as PDFs",
+  "description": "DocUnchain - export authorized documents as PDFs and SlideShare previews as PPTX",
   "main": "index.js",
   "scripts": {
-    "test": "node test/scribd-print-layout.test.js && node test/feedback.test.js && node test/gdrive.test.js && node test/slideshare.test.js"
+    "test": "node test/scribd-print-layout.test.js && node test/feedback.test.js && node test/gdrive.test.js && node test/slideshare.test.js && node test/pptx-structure.test.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "html2canvas": "^1.4.1",
-    "jspdf": "^4.2.1"
+    "jspdf": "^4.2.1",
+    "pptxgenjs": "4.0.1"
   }
 }

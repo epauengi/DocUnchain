@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnScribd = document.getElementById('btn-scribd');
   const btnDrive = document.getElementById('btn-drive');
   const btnSlideshare = document.getElementById('btn-slideshare');
-  const btnSlideshareOriginal = document.getElementById('btn-slideshare-original');
+  const btnSlidesharePptx = document.getElementById('btn-slideshare-pptx');
   const btnReset = document.getElementById('btn-reset');
   const junkHint = document.getElementById('junk-hint');
   const feedbackButton = document.getElementById('btn-feedback');
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnScribd.classList.add('hidden');
     btnDrive.classList.add('hidden');
     btnSlideshare.classList.add('hidden');
-    btnSlideshareOriginal.classList.add('hidden');
+    btnSlidesharePptx.classList.add('hidden');
 
     if (site === 'studocu') {
       siteLabel.textContent = 'Studocu đã sẵn sàng';
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (site === 'slideshare') {
       siteLabel.textContent = 'SlideShare đã sẵn sàng';
       btnSlideshare.classList.remove('hidden');
-      btnSlideshareOriginal.classList.remove('hidden');
+      btnSlidesharePptx.classList.remove('hidden');
     } else if (site === 'drive') {
       siteLabel.textContent = 'Google Drive đã sẵn sàng';
       btnDrive.classList.remove('hidden');
@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnScribd.disabled = busy;
     btnDrive.disabled = busy;
     btnSlideshare.disabled = busy;
-    btnSlideshareOriginal.disabled = busy;
+    btnSlidesharePptx.disabled = busy;
     btnReset.disabled = busy;
   }
 
@@ -359,9 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
         siteLabel.textContent = 'Không gửi được lệnh. Tải lại trang rồi thử lại.';
         return;
       }
-      if (action === 'START_ORIGINAL_DOWNLOAD' && (!response || response.status !== 'focused')) {
+      if (!response || response.status !== 'started') {
         setDownloadBusy(false);
-        siteLabel.textContent = 'SlideShare chưa cho phép tải file gốc ở tài khoản hoặc bài này.';
+        siteLabel.textContent = 'Không thể bắt đầu xuất. Tải lại trang rồi thử lại.';
         return;
       }
       siteLabel.textContent = doneText;
@@ -373,15 +373,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return sendDownloadAction('START_DOWNLOAD', 'Đang gửi lệnh...', 'Đang kết xuất PDF...');
   }
 
-  function startOfficialDownload() {
-    return sendDownloadAction('START_ORIGINAL_DOWNLOAD', 'Đang tìm nút tải chính thức...', 'Nút tải chính thức đã được làm nổi bật.');
+  function startSlidesharePptx() {
+    return sendDownloadAction('START_PPTX_DOWNLOAD', 'Đang gửi lệnh...', 'Đang kết xuất PPTX...');
   }
 
   btnStudocu.addEventListener('click', startDownload);
   btnScribd.addEventListener('click', startDownload);
   btnDrive.addEventListener('click', startDownload);
   btnSlideshare.addEventListener('click', startDownload);
-  btnSlideshareOriginal.addEventListener('click', startOfficialDownload);
+  btnSlidesharePptx.addEventListener('click', startSlidesharePptx);
 
   function setResetLabel(text) {
     const svg = btnReset.querySelector('svg');

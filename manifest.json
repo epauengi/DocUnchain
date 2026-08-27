@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "DocUnchain - Clean Document & PDF Exporter",
   "version": "1.5.0",
-  "description": "Xuất tài liệu học tập PDF từ Studocu, Scribd, SlideShare & Google Drive; file gốc SlideShare chỉ theo quyền tải chính thức.",
+  "description": "Xuất PDF từ Studocu, Scribd, Google Drive; xuất PPTX ảnh từ slide SlideShare công khai.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -140,7 +140,7 @@
         "*://*.slideshare.net/*"
       ],
       "css": ["content/slideshare.css"],
-      "js": ["lib/jspdf.umd.min.js", "content/slideshare.js"],
+      "js": ["lib/jspdf.umd.min.js", "lib/jszip.min.js", "lib/pptxgen.bundle.js", "content/slideshare.js"],
       "run_at": "document_idle"
     }
   ],

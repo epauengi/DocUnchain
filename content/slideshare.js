@@ -6,7 +6,7 @@
    Bytes qua SW FETCH_SLIDE — content script bị CORS.
    Fastly 2048 thường WebP dù URL .jpg — Blob không gán image/jpeg.
    jsPDF local — không CDN. Engine Studocu/Scribd/Drive không đụng.
-   File gốc chỉ focus nút tải do SlideShare hiển thị; không tạo URL hay click thay người dùng.
+   PPTX là ảnh slide đã render; không khôi phục text, shape hay file gốc.
    ponytail: extract stitch helper when a 3rd image-stitch site lands.
    ============================================================ */
 (() => {
@@ -22,6 +22,7 @@
   let cancelled = false;
   let overlay = null;
   let overlayInError = false;
+  let pptxSaving = false;
 
   function delay(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -128,63 +129,6 @@
     return !!parseSlideshow();
   }
 
-  function normalizeControlText(value) {
-    return String(value || '')
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .toLowerCase();
-  }
-
-  function isVisibleEnabledControl(control) {
-    if (!control || control.id === 'ss-dl-btn' || control.closest('#ss-overlay')) return false;
-    if (control.hidden || control.disabled || control.getAttribute('aria-disabled') === 'true') return false;
-    if (control.closest('[aria-hidden="true"], [inert]')) return false;
-    const style = window.getComputedStyle(control);
-    const rect = control.getBoundingClientRect();
-    return style.display !== 'none'
-      && style.visibility !== 'hidden'
-      && Number(style.opacity) > 0
-      && rect.width > 0
-      && rect.height > 0;
-  }
-
-  function getControlLabel(control) {
-    return normalizeControlText([
-      control.getAttribute('aria-label'),
-      control.getAttribute('title'),
-      control.value,
-      control.textContent,
-    ].join(' '));
-  }
-
-  function findOfficialDownloadControl() {
-    const controls = document.querySelectorAll('main a[href], main button, main [role="button"], [role="main"] a[href], [role="main"] button, [role="main"] [role="button"], article a[href], article button, article [role="button"]');
-    let best = null;
-    let bestScore = -1;
-    for (const control of controls) {
-      if (!isVisibleEnabledControl(control)) continue;
-      const label = getControlLabel(control);
-      if (!/\bdownload\b|\btai(?: xuong)?\b/.test(label)) continue;
-      const score = (control.matches('a[href]') ? 1 : 0)
-        + (/(?:original|file|tep|ban goc)/.test(label) ? 4 : 0);
-      if (score > bestScore) {
-        best = control;
-        bestScore = score;
-      }
-    }
-    return best;
-  }
-
-  function focusOfficialDownload() {
-    const control = findOfficialDownloadControl();
-    if (!control) return false;
-    control.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    control.focus({ preventScroll: true });
-    return true;
-  }
-
   function encodeBitmap(bmp) {
     const w0 = bmp.width;
     const h0 = bmp.height;
@@ -277,6 +221,18 @@
     return /\.pdf$/i.test(name) ? name : name + '.pdf';
   }
 
+  function getPptxFilename(title) {
+    let name = String(title || '')
+      .replace(/\s*[|\-–—]\s*SlideShare.*$/i, '')
+      .trim()
+      .replace(/[\\/:*?"<>|]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/\.(?:pdf|pptx?)$/i, '')
+      .slice(0, 120)
+      .trim();
+    return (name || 'slideshare') + '.pptx';
+  }
+
   function closeOverlay() {
     if (overlay) {
       overlay.remove();
@@ -298,6 +254,7 @@
       </div>`;
     overlay.querySelector('.ss-cancel').addEventListener('click', () => {
       if (overlayInError) { closeOverlay(); return; }
+      if (pptxSaving) return;
       cancelled = true;
       setStatus('Đang hủy...');
     });
@@ -333,6 +290,19 @@
     if (btn) btn.textContent = 'Đóng';
   }
 
+  async function collectPages(meta) {
+    const urls = await resolveUrls(meta.urls);
+    if (cancelled) return null;
+    const pages = await mapPool(urls, (done, total) => {
+      setStatus('Đang nạp slide ' + done + '/' + total + '…');
+      setProgress((done / total) * 90);
+    });
+    if (cancelled) return null;
+    const ok = pages.filter(Boolean);
+    if (!ok.length) throw new Error('no-slides');
+    return { ok, miss: pages.length - ok.length };
+  }
+
   async function run() {
     if (running) return;
     const meta = parseSlideshow();
@@ -348,27 +318,21 @@
     setProgress(0);
 
     try {
-      const urls = await resolveUrls(meta.urls);
-      if (cancelled) {
+      const result = await collectPages(meta);
+      if (!result) {
         closeOverlay();
         return;
       }
-      const pages = await mapPool(urls, (done, total) => {
-        setStatus('Đang nạp slide ' + done + '/' + total + '…');
-        setProgress((done / total) * 90);
-      });
-      if (cancelled) {
-        closeOverlay();
-        return;
-      }
-      const ok = pages.filter(Boolean);
-      if (!ok.length) throw new Error('no-slides');
-      const miss = pages.length - ok.length;
+      const { ok, miss } = result;
 
       setStatus('Đang ghép ' + ok.length + ' slide...');
       setProgress(94);
       let pdf = null;
       for (const page of ok) {
+        if (cancelled) {
+          closeOverlay();
+          return;
+        }
         const orientation = page.width > page.height ? 'l' : 'p';
         if (!pdf) {
           pdf = new window.jspdf.jsPDF({
@@ -400,6 +364,83 @@
     }
   }
 
+  function fitWide(page) {
+    const slideWidth = 13.333;
+    const slideHeight = 7.5;
+    const scale = Math.min(slideWidth / page.width, slideHeight / page.height);
+    const width = page.width * scale;
+    const height = page.height * scale;
+    return {
+      x: (slideWidth - width) / 2,
+      y: (slideHeight - height) / 2,
+      w: width,
+      h: height,
+    };
+  }
+
+  async function runPptx() {
+    if (running) return;
+    if (typeof window.PptxGenJS !== 'function') {
+      showOverlay();
+      fail('Bộ tạo PPTX chưa sẵn sàng. Tải lại trang rồi thử lại.');
+      return;
+    }
+    const meta = parseSlideshow();
+    if (!meta || !meta.urls.length) {
+      showOverlay();
+      fail('Không tìm thấy bài giảng SlideShare.');
+      return;
+    }
+
+    running = true;
+    cancelled = false;
+    pptxSaving = false;
+    showOverlay('Đang nạp slide 0/' + meta.urls.length + '…');
+    setProgress(0);
+
+    try {
+      const result = await collectPages(meta);
+      if (!result) {
+        closeOverlay();
+        return;
+      }
+      const { ok, miss } = result;
+      const pptx = new window.PptxGenJS();
+      pptx.layout = 'LAYOUT_WIDE';
+      pptx.title = meta.title || 'SlideShare';
+
+      for (let i = 0; i < ok.length; i++) {
+        if (cancelled) {
+          closeOverlay();
+          return;
+        }
+        setStatus('Đang tạo PPTX ' + (i + 1) + '/' + ok.length + '…');
+        setProgress(90 + ((i + 1) / ok.length) * 8);
+        const slide = pptx.addSlide();
+        slide.background = { color: '000000' };
+        slide.addImage({ data: ok[i].data, ...fitWide(ok[i]) });
+      }
+
+      pptxSaving = true;
+      const cancel = overlay && overlay.querySelector('.ss-cancel');
+      if (cancel) cancel.disabled = true;
+      setStatus('Đang lưu PPTX...');
+      setProgress(98);
+      await pptx.writeFile({ fileName: getPptxFilename(meta.title) });
+      setStatus('Hoàn tất. Đã lưu PPTX gồm ' + ok.length + ' slide.' + (miss ? ' Thiếu ' + miss + ' slide.' : ''));
+      setProgress(100);
+      setTimeout(closeOverlay, 2800);
+    } catch (e) {
+      const msg = e && e.message === 'no-slides'
+        ? 'Không tải được ảnh slide. Tải lại trang rồi thử lại.'
+        : 'Không thể tạo PPTX. Tải lại trang rồi thử lại.';
+      fail(msg);
+    } finally {
+      pptxSaving = false;
+      running = false;
+    }
+  }
+
   function injectButton() {
     if (document.getElementById('ss-dl-btn')) return;
     const btn = document.createElement('button');
@@ -423,10 +464,9 @@
     if (req.action === 'START_DOWNLOAD') {
       run();
       sendResponse({ status: 'started' });
-    } else if (req.action === 'START_ORIGINAL_DOWNLOAD') {
-      sendResponse({
-        status: focusOfficialDownload() ? 'focused' : 'unavailable',
-      });
+    } else if (req.action === 'START_PPTX_DOWNLOAD') {
+      runPptx();
+      sendResponse({ status: 'started' });
     }
     return true;
   });
