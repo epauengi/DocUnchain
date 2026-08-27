@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnScribd = document.getElementById('btn-scribd');
   const btnDrive = document.getElementById('btn-drive');
   const btnSlideshare = document.getElementById('btn-slideshare');
+  const btnSlideshareOriginal = document.getElementById('btn-slideshare-original');
   const btnReset = document.getElementById('btn-reset');
   const junkHint = document.getElementById('junk-hint');
   const feedbackButton = document.getElementById('btn-feedback');
@@ -74,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnScribd.classList.add('hidden');
     btnDrive.classList.add('hidden');
     btnSlideshare.classList.add('hidden');
+    btnSlideshareOriginal.classList.add('hidden');
 
     if (site === 'studocu') {
       siteLabel.textContent = 'Studocu đã sẵn sàng';
@@ -85,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (site === 'slideshare') {
       siteLabel.textContent = 'SlideShare đã sẵn sàng';
       btnSlideshare.classList.remove('hidden');
+      btnSlideshareOriginal.classList.remove('hidden');
     } else if (site === 'drive') {
       siteLabel.textContent = 'Google Drive đã sẵn sàng';
       btnDrive.classList.remove('hidden');
@@ -336,10 +339,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnScribd.disabled = busy;
     btnDrive.disabled = busy;
     btnSlideshare.disabled = busy;
+    btnSlideshareOriginal.disabled = busy;
     btnReset.disabled = busy;
   }
 
-  async function startDownload() {
+  async function sendDownloadAction(action, pendingText, doneText) {
     if (downloadBusy) return;
     const tab = await getActiveTab();
     if (!tab || !Number.isInteger(tab.id)) {
@@ -347,23 +351,37 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     setDownloadBusy(true);
-    siteLabel.textContent = 'Đang gửi lệnh...';
-    chrome.tabs.sendMessage(tab.id, { action: 'START_DOWNLOAD' }, () => {
+    siteLabel.textContent = pendingText;
+    chrome.tabs.sendMessage(tab.id, { action }, (response) => {
       const err = chrome.runtime.lastError;
       if (err) {
         setDownloadBusy(false);
         siteLabel.textContent = 'Không gửi được lệnh. Tải lại trang rồi thử lại.';
         return;
       }
-      siteLabel.textContent = 'Đang kết xuất PDF...';
+      if (action === 'START_ORIGINAL_DOWNLOAD' && (!response || response.status !== 'focused')) {
+        setDownloadBusy(false);
+        siteLabel.textContent = 'SlideShare chưa cho phép tải file gốc ở tài khoản hoặc bài này.';
+        return;
+      }
+      siteLabel.textContent = doneText;
       setTimeout(() => window.close(), 300);
     });
+  }
+
+  function startDownload() {
+    return sendDownloadAction('START_DOWNLOAD', 'Đang gửi lệnh...', 'Đang kết xuất PDF...');
+  }
+
+  function startOfficialDownload() {
+    return sendDownloadAction('START_ORIGINAL_DOWNLOAD', 'Đang tìm nút tải chính thức...', 'Nút tải chính thức đã được làm nổi bật.');
   }
 
   btnStudocu.addEventListener('click', startDownload);
   btnScribd.addEventListener('click', startDownload);
   btnDrive.addEventListener('click', startDownload);
   btnSlideshare.addEventListener('click', startDownload);
+  btnSlideshareOriginal.addEventListener('click', startOfficialDownload);
 
   function setResetLabel(text) {
     const svg = btnReset.querySelector('svg');

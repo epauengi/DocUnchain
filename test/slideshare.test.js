@@ -8,7 +8,8 @@ const popupJs = fs.readFileSync('popup/popup.js', 'utf8');
 const popupHtml = fs.readFileSync('popup/popup.html', 'utf8');
 const css = fs.readFileSync('content/slideshare.css', 'utf8');
 
-assert.match(manifest.version, /^1\.4\./);
+assert.match(manifest.version, /^1\.5\./);
+assert.doesNotMatch(manifest.description, /không cần tài khoản VIP/i);
 assert.ok(manifest.host_permissions.includes('*://*.slideshare.net/*'));
 assert.ok(manifest.host_permissions.includes('*://*.slidesharecdn.com/*'));
 assert.ok(manifest.host_permissions.includes('*://sscdn.co/*'));
@@ -24,6 +25,13 @@ assert.match(source, /totalSlides/);
 assert.match(source, /image\.slidesharecdn/);
 assert.match(source, /vertical-slide-image/);
 assert.match(source, /START_DOWNLOAD/);
+assert.match(source, /START_ORIGINAL_DOWNLOAD/);
+assert.match(source, /findOfficialDownloadControl/);
+assert.match(source, /focusOfficialDownload/);
+assert.match(source, /scrollIntoView/);
+assert.match(source, /focus\(/);
+assert.match(source, /main a\[href\], main button/);
+assert.doesNotMatch(source, /\.click\s*\(/);
 assert.match(source, /createImageBitmap/);
 assert.match(source, /toDataURL\('image\/jpeg'/);
 assert.match(source, /MAX_SLIDES/);
@@ -54,7 +62,12 @@ assert.match(css, /#ss-overlay/);
 assert.match(css, /sync with popup\.html :root/);
 
 assert.match(popupHtml, /id="btn-slideshare"/);
+assert.match(popupHtml, /id="btn-slideshare-original"/);
+assert.match(popupHtml, /Mở tải xuống chính thức SlideShare/);
 assert.match(popupJs, /'slideshare'/);
 assert.match(popupJs, /btn-slideshare/);
+assert.match(popupJs, /START_ORIGINAL_DOWNLOAD/);
+assert.match(popupJs, /Nút tải chính thức đã được làm nổi bật/);
+assert.match(popupJs, /chưa cho phép tải file gốc/);
 
 console.log('SlideShare integration checks passed');

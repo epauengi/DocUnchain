@@ -6,6 +6,7 @@
    Bytes qua SW FETCH_SLIDE — content script bị CORS.
    Fastly 2048 thường WebP dù URL .jpg — Blob không gán image/jpeg.
    jsPDF local — không CDN. Engine Studocu/Scribd/Drive không đụng.
+   File gốc chỉ focus nút tải do SlideShare hiển thị; không tạo URL hay click thay người dùng.
    ponytail: extract stitch helper when a 3rd image-stitch site lands.
    ============================================================ */
 (() => {
@@ -125,6 +126,63 @@
 
   function hasSlideshow() {
     return !!parseSlideshow();
+  }
+
+  function normalizeControlText(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function isVisibleEnabledControl(control) {
+    if (!control || control.id === 'ss-dl-btn' || control.closest('#ss-overlay')) return false;
+    if (control.hidden || control.disabled || control.getAttribute('aria-disabled') === 'true') return false;
+    if (control.closest('[aria-hidden="true"], [inert]')) return false;
+    const style = window.getComputedStyle(control);
+    const rect = control.getBoundingClientRect();
+    return style.display !== 'none'
+      && style.visibility !== 'hidden'
+      && Number(style.opacity) > 0
+      && rect.width > 0
+      && rect.height > 0;
+  }
+
+  function getControlLabel(control) {
+    return normalizeControlText([
+      control.getAttribute('aria-label'),
+      control.getAttribute('title'),
+      control.value,
+      control.textContent,
+    ].join(' '));
+  }
+
+  function findOfficialDownloadControl() {
+    const controls = document.querySelectorAll('main a[href], main button, main [role="button"], [role="main"] a[href], [role="main"] button, [role="main"] [role="button"], article a[href], article button, article [role="button"]');
+    let best = null;
+    let bestScore = -1;
+    for (const control of controls) {
+      if (!isVisibleEnabledControl(control)) continue;
+      const label = getControlLabel(control);
+      if (!/\bdownload\b|\btai(?: xuong)?\b/.test(label)) continue;
+      const score = (control.matches('a[href]') ? 1 : 0)
+        + (/(?:original|file|tep|ban goc)/.test(label) ? 4 : 0);
+      if (score > bestScore) {
+        best = control;
+        bestScore = score;
+      }
+    }
+    return best;
+  }
+
+  function focusOfficialDownload() {
+    const control = findOfficialDownloadControl();
+    if (!control) return false;
+    control.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    control.focus({ preventScroll: true });
+    return true;
   }
 
   function encodeBitmap(bmp) {
@@ -365,6 +423,10 @@
     if (req.action === 'START_DOWNLOAD') {
       run();
       sendResponse({ status: 'started' });
+    } else if (req.action === 'START_ORIGINAL_DOWNLOAD') {
+      sendResponse({
+        status: focusOfficialDownload() ? 'focused' : 'unavailable',
+      });
     }
     return true;
   });

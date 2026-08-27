@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Manifest V3">
-  <img src="https://img.shields.io/badge/version-1.4.1-1F8F66?style=flat-square" alt="Version 1.4.1">
+  <img src="https://img.shields.io/badge/version-1.5.0-1F8F66?style=flat-square" alt="Version 1.5.0">
   <img src="https://img.shields.io/badge/license-MIT-6B7280?style=flat-square" alt="MIT License">
 </p>
 
@@ -21,7 +21,7 @@
 |---|---|---|---|
 | Studocu / Studeersnel | Nội dung trình xem đã cung cấp cho phiên hiện tại / Viewer content available to the current session | Hộp thoại in của Chrome / Chrome print dialog | Nội dung máy chủ không cung cấp vẫn không thể xuất / Server-withheld content remains unavailable |
 | Scribd | Trang tài liệu hoặc embed được hỗ trợ / Supported document or embed route | Luồng embed rồi in / Embed-and-print flow | Phụ thuộc vào trình xem hiện tại của Scribd / Depends on the current Scribd viewer |
-| SlideShare | Bài trình bày công khai có metadata và ảnh slide khả dụng / Public presentations with available metadata and slide images | Ảnh CDN → jsPDF cục bộ / CDN images → local jsPDF | PDF dạng raster; trang chủ và tìm kiếm không hiện thao tác / Raster output; no action on home or search pages |
+| SlideShare | Bài trình bày công khai có metadata và ảnh slide khả dụng; file gốc cần nút tải chính thức / Public presentations with slide metadata/images; original files require a visible official download control | Ảnh CDN → jsPDF cục bộ; focus nút tải gốc / CDN images → local jsPDF; focuses native original-download control | PDF dạng raster; định dạng, quyền tải và đăng nhập của file gốc do SlideShare quyết định / Raster PDF; SlideShare determines original-file format, permission, and sign-in |
 | Google Drive | Xem trước tệp tại `/file/d/.../view` / File preview at `/file/d/.../view` | Chụp trang đã render → jsPDF cục bộ / Rendered-page capture → local jsPDF | PDF phản ánh những gì trình xem render được / Output reflects what the viewer renders |
 | PDF mẫu / Sample PDF | Mọi tab / Any tab | jsPDF cục bộ / Local jsPDF | Có thể dùng tóm tắt Wikipedia; lỗi mạng dùng Lorem cục bộ / May use Wikipedia summaries; local Lorem fallback on failure |
 
@@ -51,6 +51,7 @@ Chrome Manifest V3 is the tested target. Other Chromium browsers may work but ar
 - **`Tải PDF Studocu`**: mở luồng in. **`Reset phiên Studocu`** là thao tác dọn phiên: xoá cookie Studocu/Studeersnel thông thường, giữ cookie xác minh Cloudflare, rồi tải lại trang.
 - **`Tải PDF Scribd`**: chuyển sang luồng embed/in khi route hiện tại được hỗ trợ.
 - **`Tải PDF SlideShare`**: xuất các ảnh slide công khai đang khả dụng thành PDF cục bộ. Có thể dùng nút trong popup hoặc nút nổi trên trang bài trình bày.
+- **`Mở tải xuống chính thức SlideShare`**: chỉ cuộn đến và focus nút tải đang hiển thị do SlideShare cung cấp; bạn tự bấm nút đó để SlideShare xử lý đăng nhập, quyền tải và định dạng file gốc. Nếu không có nút, bài hoặc tài khoản hiện tại chưa được SlideShare cho phép tải.
 - **`Tải PDF Google Drive`**: quét bản xem trước rồi tạo PDF từ các trang đã render. Chờ hoàn tất trước khi đóng trang.
 - **`Tạo PDF rác`**: công cụ PDF mẫu tùy chọn, giới hạn 1–10 tệp, 1–10 trang mỗi tệp và 1–10 đoạn Wikipedia. Tên nút giữ nguyên theo giao diện.
 
@@ -84,8 +85,8 @@ Hosts in [manifest.json](manifest.json) serve only these flows: Studocu/Studeers
   DocUnchain is not affiliated with Studocu, Scribd, SlideShare, Google, or their owners.
 - Extension không mở khóa nội dung riêng tư, trả phí, đã xoá, bị giới hạn tài khoản hoặc bị máy chủ giữ lại.<br>
   The extension does not unlock private, paid, deleted, account-gated, or server-withheld content.
-- Thay đổi giao diện, truy cập, mạng hoặc cơ chế render của nguồn có thể làm một phần hoặc toàn bộ xuất PDF không hoàn chỉnh. PDF là nội dung đã render, không phải bản gốc có thể chỉnh sửa.<br>
-  Source UI, access, network, or rendering changes can make an export partial or unavailable. PDFs represent rendered content, not editable originals.
+- Thay đổi giao diện, truy cập, mạng hoặc cơ chế render của nguồn có thể làm một phần hoặc toàn bộ xuất PDF không hoàn chỉnh. PDF là nội dung đã render, không phải bản gốc có thể chỉnh sửa. File gốc chỉ do SlideShare cung cấp khi nút tải chính thức hiện diện; extension không tạo URL hay vượt qua quyền tải.<br>
+  Source UI, access, network, or rendering changes can make an export partial or unavailable. PDFs represent rendered content, not editable originals. Original files are available only through SlideShare’s visible official control; the extension neither constructs URLs nor bypasses download permissions.
 
 ## Phát triển, kiểm thử & kiến trúc / Development, testing & architecture
 

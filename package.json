@@ -1,7 +1,7 @@
 {
   "name": "docunchain",
-  "version": "1.4.1",
-  "description": "DocUnchain - unlock & export Studocu, Scribd, SlideShare and Google Drive view-only documents as PDFs",
+  "version": "1.5.0",
+  "description": "DocUnchain - export authorized Studocu, Scribd, SlideShare and Google Drive documents as PDFs",
   "main": "index.js",
   "scripts": {
     "test": "node test/scribd-print-layout.test.js && node test/feedback.test.js && node test/gdrive.test.js && node test/slideshare.test.js"
