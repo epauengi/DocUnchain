@@ -1,99 +1,120 @@
-# DocUnchain
+<p align="center">
+  <img src="icons/icon128.png" width="72" alt="DocUnchain icon">
+</p>
 
-> Unlock and export study documents from Studocu, Scribd, SlideShare & Google Drive as high-quality PDFs, no VIP account required.
+<h1 align="center">DocUnchain</h1>
 
-![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-blue?style=flat-square&logo=googlechrome)
-![Version](https://img.shields.io/badge/version-1.4.1-green?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)
+<p align="center">
+  Xuất PDF từ tài liệu công khai hoặc được phép sử dụng trong Chrome.<br>
+  Export public or authorized documents to PDF in Chrome.
+</p>
 
-## Features
+<p align="center">
+  <img src="https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?style=flat-square&logo=googlechrome&logoColor=white" alt="Chrome Manifest V3">
+  <img src="https://img.shields.io/badge/version-1.4.1-1F8F66?style=flat-square" alt="Version 1.4.1">
+  <img src="https://img.shields.io/badge/license-MIT-6B7280?style=flat-square" alt="MIT License">
+</p>
 
-- **Unblur content** on Studocu, revealing premium-locked text
-- **Export original-quality PDFs** via the browser print dialog, preserving vector fonts
-- **Reset Studocu sessions** on demand while retaining Cloudflare verification cookies
-- **Scribd support** to download PDFs without signing in
-- **SlideShare support** to stitch CDN slide images (`image.slidesharecdn.com`) into a local jsPDF from `#__NEXT_DATA__` (DOM srcset fallback)
-- **Google Drive support** to export view-only (download-disabled) files: auto-scans the whole preview from the top, captures pages in parallel (owning each page's pixels via `fetch(blob:)` before Drive can revoke it), repairs skipped lazy-load gaps by coordinate analysis, deduplicates pages by position, and assembles a locally bundled jsPDF
-- **Junk PDF generator** in the popup: builds filler A4 PDFs from Wikipedia VI/EN random summaries (Lorem fallback offline), capped at 10 files × 10 pages
-- **Cloudflare-compatible** normal browsing with native browser cookies
-- **UI cleanup** removing banners, ads, and premium overlays
+## Hỗ trợ / Supported sites
 
-## Installation
+| Dịch vụ / Service | Phạm vi / Scope | Luồng xuất / Export path | Lưu ý / Notes |
+|---|---|---|---|
+| Studocu / Studeersnel | Nội dung trình xem đã cung cấp cho phiên hiện tại / Viewer content available to the current session | Hộp thoại in của Chrome / Chrome print dialog | Nội dung máy chủ không cung cấp vẫn không thể xuất / Server-withheld content remains unavailable |
+| Scribd | Trang tài liệu hoặc embed được hỗ trợ / Supported document or embed route | Luồng embed rồi in / Embed-and-print flow | Phụ thuộc vào trình xem hiện tại của Scribd / Depends on the current Scribd viewer |
+| SlideShare | Bài trình bày công khai có metadata và ảnh slide khả dụng / Public presentations with available metadata and slide images | Ảnh CDN → jsPDF cục bộ / CDN images → local jsPDF | PDF dạng raster; trang chủ và tìm kiếm không hiện thao tác / Raster output; no action on home or search pages |
+| Google Drive | Xem trước tệp tại `/file/d/.../view` / File preview at `/file/d/.../view` | Chụp trang đã render → jsPDF cục bộ / Rendered-page capture → local jsPDF | PDF phản ánh những gì trình xem render được / Output reflects what the viewer renders |
+| PDF mẫu / Sample PDF | Mọi tab / Any tab | jsPDF cục bộ / Local jsPDF | Có thể dùng tóm tắt Wikipedia; lỗi mạng dùng Lorem cục bộ / May use Wikipedia summaries; local Lorem fallback on failure |
 
-1. Clone or download this repository
-2. Open `chrome://extensions/`
-3. Enable **Developer mode** (top-right toggle)
-4. Click **Load unpacked** and select the project folder
-5. Pin the extension to your toolbar
+DocUnchain không cấp quyền truy cập mới. Chỉ dùng với tài liệu công khai hoặc tài liệu bạn được phép xem và lưu.<br>
+DocUnchain does not grant new access. Use it only for public material or material you are authorized to view and save.
 
-## Usage
+## Cài đặt / Installation
 
-### Studocu
+1. Tải hoặc clone repository này, rồi giải nén nếu tải ZIP. / Download or clone this repository; extract it if you downloaded a ZIP.
+2. Mở `chrome://extensions/` trong Chrome.
+3. Bật **Developer mode**.
+4. Chọn **Load unpacked**.
+5. Chọn thư mục gốc chứa `manifest.json`, rồi ghim DocUnchain lên thanh công cụ.
 
-Open a Studocu document page, click the extension icon, then press **Tải PDF Studocu**. The extension automatically unblurs, loads all pages, and opens the print dialog to save the PDF.
+Chrome Manifest V3 là môi trường đích đã kiểm tra. Trình duyệt Chromium khác có thể hoạt động nhưng chưa được xác nhận; Firefox và Safari không được hỗ trợ.<br>
+Chrome Manifest V3 is the tested target. Other Chromium browsers may work but are unverified; Firefox and Safari are unsupported.
 
-If you hit a view limit, use the **Reset phiên Studocu** button to clear cookies and reload the page.
+## Cách dùng / Usage
 
-### Scribd
+1. Mở trang được hỗ trợ có nội dung bạn được phép lưu. / Open a supported page containing material you may save.
+2. Mở DocUnchain từ thanh công cụ. / Open DocUnchain from the toolbar.
+3. Chọn thao tác hiện ra cho trang đó. / Choose the action shown for that page.
+4. Lưu từ hộp thoại in của Chrome, hoặc chờ PDF được tạo cục bộ. / Save from Chrome's print dialog, or wait for the local PDF to finish.
 
-Open a Scribd document page, click the extension icon, then press **Tải PDF Scribd**. The extension navigates to the embed page and renders the PDF automatically.
+### Ghi chú theo luồng / Workflow notes
 
-### SlideShare
+- **`Tải PDF Studocu`**: mở luồng in. **`Reset phiên Studocu`** là thao tác dọn phiên: xoá cookie Studocu/Studeersnel thông thường, giữ cookie xác minh Cloudflare, rồi tải lại trang.
+- **`Tải PDF Scribd`**: chuyển sang luồng embed/in khi route hiện tại được hỗ trợ.
+- **`Tải PDF SlideShare`**: xuất các ảnh slide công khai đang khả dụng thành PDF cục bộ. Có thể dùng nút trong popup hoặc nút nổi trên trang bài trình bày.
+- **`Tải PDF Google Drive`**: quét bản xem trước rồi tạo PDF từ các trang đã render. Chờ hoàn tất trước khi đóng trang.
+- **`Tạo PDF rác`**: công cụ PDF mẫu tùy chọn, giới hạn 1–10 tệp, 1–10 trang mỗi tệp và 1–10 đoạn Wikipedia. Tên nút giữ nguyên theo giao diện.
 
-Open a presentation (`https://www.slideshare.net/slideshow/...` or `/{user}/{slug}`), click **Tải PDF SlideShare** in the popup or the floating button. The extension reads slide metadata from the page, fetches full-resolution JPEGs from SlideShare's CDN **via the service worker** (content scripts cannot cross CDN CORS), and saves a multi-page PDF named after the deck. Homepage/search pages have no FAB.
+## Quyền riêng tư & quyền hạn / Privacy & permissions
 
-### Google Drive (View-Only)
+PDF được tạo trong trình duyệt khi luồng hỗ trợ tạo PDF cục bộ; nội dung nguồn chỉ được yêu cầu từ dịch vụ hoặc CDN liên quan. Không có luồng nào trong extension tải tài liệu lên máy chủ do DocUnchain vận hành.<br>
+Where a workflow creates a local PDF, assembly happens in the browser; source content is requested only from the relevant service or CDN. The extension has no DocUnchain-operated document-upload flow.
 
-Open the file preview on Drive (`https://drive.google.com/file/d/.../view`), click **Tải PDF Google Drive** in the popup or the floating button on the page. The engine jumps back to the top, sweeps through the document while owning each page's image bytes (immune to Drive's blob revocation and lazy re-rendering), waits adaptively for slow networks, then runs a verification pass against Drive's own page counter before saving a multi-page PDF named after the file. No manual scrolling needed. If some pages remain unavailable, the overlay reports exactly how many pages were saved vs. expected.
+| Quyền / Permission | Mục đích / Purpose |
+|---|---|
+| `activeTab` | Nhận diện trang đang mở và gửi thao tác do người dùng yêu cầu / Detect the active page and dispatch a user-requested action |
+| `scripting` | Chạy transport phản hồi do người dùng gửi từ tab hiện tại / Run the user-submitted feedback transport from the active tab |
+| `downloads` | Hỗ trợ tải các PDF được tạo / Support generated-PDF downloads |
+| `cookies` | Dọn cookie phiên Studocu/Studeersnel thông thường, vẫn giữ `cf_*`, `__cf*`, `_cfuvid` / Clear ordinary Studocu/Studeersnel session cookies while retaining `cf_*`, `__cf*`, `_cfuvid` |
 
-### Junk PDF
+Các host trong [manifest.json](manifest.json) chỉ phục vụ các luồng sau: Studocu/Studeersnel và document assets; Scribd; Google Drive; SlideShare và CDN của SlideShare; Wikipedia cho PDF mẫu; FormSubmit cho phản hồi được gửi rõ ràng bởi người dùng.<br>
+Hosts in [manifest.json](manifest.json) serve only these flows: Studocu/Studeersnel and document assets; Scribd; Google Drive; SlideShare and its CDN; Wikipedia for sample PDFs; FormSubmit for feedback explicitly sent by the user.
 
-Open the extension popup on any tab. In **Junk PDF**, set file count, pages per file, and Wikipedia paragraph count (each 1–10), then press **Tạo PDF rác**. The popup fetches random VI/EN Wikipedia summaries when online, falls back to local Lorem text otherwise, and downloads the generated PDFs via bundled jsPDF.
+### Lời gọi bên ngoài tùy chọn / Optional external calls
 
-## Architecture
+- **PDF mẫu**: lấy tóm tắt ngẫu nhiên từ `vi.wikipedia.org` hoặc `en.wikipedia.org` khi có mạng; dùng Lorem cục bộ nếu không lấy được.
+- **Báo lỗi**: chỉ gửi sau khi người dùng bấm **Gửi báo lỗi**. FormSubmit nhận nội dung phản hồi, tên/phiên bản extension, thông tin trình duyệt, thời điểm gửi, cùng URL trang hiện tại *nếu* người dùng giữ tùy chọn đính kèm URL. URL này loại bỏ thông tin đăng nhập, query và fragment. Không gửi dữ liệu nhạy cảm trong phản hồi.
+- **Sample PDF**: fetches random summaries from `vi.wikipedia.org` or `en.wikipedia.org` when available; it falls back to local Lorem text on failure.
+- **Feedback**: sent only after the user presses **Gửi báo lỗi**. FormSubmit receives the report, extension name/version, browser information, timestamp, and the current-page URL *only if* the user keeps the URL option enabled. That URL has credentials, query, and fragment removed. Do not submit sensitive data.
 
+## Giới hạn & sử dụng hợp pháp / Limitations & lawful use
+
+- Chỉ dùng với tài liệu công khai hoặc tài liệu bạn được phép truy cập và lưu. Tôn trọng bản quyền, giấy phép, quy định của tổ chức và Điều khoản dịch vụ của mỗi nền tảng.<br>
+  Use only public material or material you are authorized to access and save. Respect copyright, licenses, institutional rules, and each platform's Terms of Service.
+- DocUnchain không liên kết với Studocu, Scribd, SlideShare, Google hoặc chủ sở hữu của họ.<br>
+  DocUnchain is not affiliated with Studocu, Scribd, SlideShare, Google, or their owners.
+- Extension không mở khóa nội dung riêng tư, trả phí, đã xoá, bị giới hạn tài khoản hoặc bị máy chủ giữ lại.<br>
+  The extension does not unlock private, paid, deleted, account-gated, or server-withheld content.
+- Thay đổi giao diện, truy cập, mạng hoặc cơ chế render của nguồn có thể làm một phần hoặc toàn bộ xuất PDF không hoàn chỉnh. PDF là nội dung đã render, không phải bản gốc có thể chỉnh sửa.<br>
+  Source UI, access, network, or rendering changes can make an export partial or unavailable. PDFs represent rendered content, not editable originals.
+
+## Phát triển, kiểm thử & kiến trúc / Development, testing & architecture
+
+Cài dependencies khi cần: / Install dependencies when needed:
+
+```bash
+npm install
 ```
-popup/          Popup UI (site detection, command dispatch, junk PDF)
-  junk-pdf.js   Wikipedia filler → jsPDF generator
-background.js   Service worker (cookie reset + SlideShare CDN fetch relay)
-content/
-  content.js    Studocu engine (unblur, text/image injection, PDF export)
-  content.css   CSS for blur removal and hiding extra elements
-  scribd.js     Scribd downloader (embed navigation, print)
-  scribd.css    Scribd CSS (unblur, hide paywall)
-  gdrive.js     Google Drive engine (slot-based scan, blob capture, verify pass)
-  slideshare.js SlideShare engine (__NEXT_DATA__ + CDN JPEG stitch)
-  slideshare.css SlideShare FAB + overlay
-lib/
-  jspdf.umd.min.js  Bundled jsPDF (no CDN, works offline & under CSP)
-test/           Node checks + Drive viewer mock harness (test/mock/)
-icons/          Extension icons (16, 48, 128px)
+
+Chạy bốn suite Node: bố cục in Scribd, phản hồi, Google Drive và SlideShare. Đây là kiểm tra wiring/harness; không thay thế kiểm thử Chrome thật.<br>
+Run four Node suites: Scribd print layout, feedback, Google Drive, and SlideShare. They are wiring/harness checks, not a replacement for live Chrome testing.
+
+```bash
+npm test
 ```
 
-### How it works
-
-1. **Normal navigation** uses native browser cookies, so Cloudflare verification cookies work normally.
-2. **Reset phiên Studocu** removes ordinary Studocu cookies through the Cookies API while preserving `cf_*`, `__cf*`, and `_cfuvid` cookies, then reloads the current tab.
-3. **Content script** parses `__NEXT_DATA__` to get the `objectKey`, fetches text layers from `doc-assets.studocu.com`, and injects them into the DOM.
-4. **PDF export** clones all pages into an overlay, embeds images as data URIs, computes the A4 scale, then calls `window.print()`.
-
-Cookie-header stripping is deliberately not used: Chrome MV3 cannot retain only `cf_clearance` while removing other cookies from a request.
-
-## Permissions
-
-| Permission | Purpose |
-|------------|---------|
-| `activeTab` | Send messages to the active tab |
-| `scripting` | Inject content scripts |
-| `downloads` | Support file downloads |
-| `cookies` | Reset Studocu cookies while retaining Cloudflare verification cookies |
-
-Host permissions additionally cover `*.studocu.com`, `*.scribd.com`, `*.slideshare.net`, `*.slidesharecdn.com`, `sscdn.co`, `drive.google.com`, `*.wikipedia.org` (junk PDF content), and regional Studocu mirrors listed in `manifest.json`.
+| Khu vực / Area | Trách nhiệm / Responsibility |
+|---|---|
+| [`popup/`](popup/) | Nhận diện trang, gửi thao tác, PDF mẫu và phản hồi / Page detection, actions, sample PDFs, and feedback |
+| [`content/`](content/) | Các luồng chụp/xuất riêng theo dịch vụ / Site-specific capture and export flows |
+| [`background.js`](background.js) | Dọn phiên Studocu/Studeersnel và relay ảnh CDN SlideShare đã kiểm tra host / Studocu/Studeersnel session cleanup and validated SlideShare CDN image relay |
+| [`lib/jspdf.umd.min.js`](lib/jspdf.umd.min.js) | Tạo PDF được bundle cục bộ / Bundled local PDF generation |
 
 ## Credits
 
-The Studocu core is ported from [danieltyukov/studocuhack](https://github.com/danieltyukov/studocuhack) (MIT License).
+- Phần lõi Studocu kế thừa từ [danieltyukov/studocuhack](https://github.com/danieltyukov/studocuhack), giấy phép MIT.
+- Bản bundle [`jsPDF`](https://github.com/parallax/jsPDF) trong [`lib/`](lib/) theo giấy phép MIT.
 
 ## License
 
-[MIT](LICENSE)
+Repository được phát hành theo [MIT License](LICENSE).<br>
+This repository is distributed under the [MIT License](LICENSE).
