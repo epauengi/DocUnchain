@@ -14,8 +14,8 @@
       --stroke: rgba(158, 184, 214, 0.14);
       --stroke-strong: rgba(158, 184, 214, 0.32);
       --text: #eef4fb;
-      --muted: #a5b4c8;
-      --faint: #77879d;
+      --muted: #cbd5e1;
+      --faint: #94a3b8;
       --blue: #5db2ff;
       --blue-strong: #1f7ae0;
       --mint: #45d6a4;
@@ -417,11 +417,54 @@
     }
     .btn-secondary:active:not(:disabled) { transform: translateY(1px); }
 
-    /* Feedback is secondary to the document action. */
+    /* Collapsible Tools / Junk block */
     .junk-block {
       margin-top: 12px;
-      padding-top: 12px;
+      padding-top: 10px;
       border-top: 1px solid var(--stroke);
+    }
+
+    .junk-block details {
+      width: 100%;
+    }
+
+    .junk-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+      margin: 0 1px 6px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      transition: color 150ms ease;
+    }
+
+    .junk-summary::-webkit-details-marker { display: none; }
+
+    .junk-summary:hover {
+      color: var(--muted);
+    }
+
+    .junk-summary-icon {
+      width: 12px;
+      height: 12px;
+      transition: transform 200ms ease;
+      fill: currentColor;
+    }
+
+    .junk-block details[open] .junk-summary-icon {
+      transform: rotate(180deg);
+    }
+
+    .junk-content {
+      padding-top: 4px;
+      animation: rise 240ms cubic-bezier(0.2, 0.9, 0.3, 1) backwards;
     }
 
     .junk-row {
@@ -786,27 +829,34 @@
     </section>
 
     <section class="junk-block" aria-label="Tạo PDF rác">
-      <div class="action-label">PDF rác</div>
-      <p class="junk-hint" id="junk-hint">Tạo file PDF mẫu từ Wikipedia. Tối đa 10 file × 10 trang.</p>
-      <div class="junk-row">
-        <label class="junk-field">
-          <span>File</span>
-          <input id="junk-files" type="number" min="1" max="10" value="1" inputmode="numeric" aria-label="Số file">
-        </label>
-        <label class="junk-field">
-          <span>Trang</span>
-          <input id="junk-pages" type="number" min="1" max="10" value="1" inputmode="numeric" aria-label="Số trang mỗi file">
-        </label>
-        <label class="junk-field">
-          <span>Đoạn</span>
-          <input id="junk-wiki" type="number" min="1" max="10" value="5" inputmode="numeric" aria-label="Số đoạn Wikipedia">
-        </label>
-      </div>
-      <button class="btn-secondary" id="btn-junk" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1 7V3.5L18.5 9H15zM8 13h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V9z"/></svg>
-        Tạo PDF rác
-      </button>
-      <div class="junk-status" id="junk-status" role="status" aria-live="polite" aria-atomic="true"></div>
+      <details id="junk-details">
+        <summary class="junk-summary">
+          <span>Công cụ tạo PDF mẫu</span>
+          <svg class="junk-summary-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+        </summary>
+        <div class="junk-content">
+          <p class="junk-hint" id="junk-hint">Tạo file PDF mẫu từ Wikipedia. Tối đa 10 file × 10 trang.</p>
+          <div class="junk-row">
+            <label class="junk-field">
+              <span>File</span>
+              <input id="junk-files" type="number" min="1" max="10" value="1" inputmode="numeric" aria-label="Số file">
+            </label>
+            <label class="junk-field">
+              <span>Trang</span>
+              <input id="junk-pages" type="number" min="1" max="10" value="1" inputmode="numeric" aria-label="Số trang mỗi file">
+            </label>
+            <label class="junk-field">
+              <span>Đoạn</span>
+              <input id="junk-wiki" type="number" min="1" max="10" value="5" inputmode="numeric" aria-label="Số đoạn Wikipedia">
+            </label>
+          </div>
+          <button class="btn-secondary" id="btn-junk" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1 7V3.5L18.5 9H15zM8 13h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V9z"/></svg>
+            Tạo PDF rác
+          </button>
+          <div class="junk-status" id="junk-status" role="status" aria-live="polite" aria-atomic="true"></div>
+        </div>
+      </details>
     </section>
 
     <footer class="footer">

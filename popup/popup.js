@@ -77,24 +77,32 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSlideshare.classList.add('hidden');
     btnSlidesharePptx.classList.add('hidden');
 
+    const junkDetails = document.getElementById('junk-details');
+
     if (site === 'studocu') {
       siteLabel.textContent = 'Studocu đã sẵn sàng';
       btnStudocu.classList.remove('hidden');
       btnReset.classList.remove('hidden');
+      if (junkDetails) junkDetails.open = false;
     } else if (site === 'scribd') {
       siteLabel.textContent = 'Scribd đã sẵn sàng';
       btnScribd.classList.remove('hidden');
+      if (junkDetails) junkDetails.open = false;
     } else if (site === 'slideshare') {
       siteLabel.textContent = 'SlideShare đã sẵn sàng';
       btnSlideshare.classList.remove('hidden');
       btnSlidesharePptx.classList.remove('hidden');
+      if (junkDetails) junkDetails.open = false;
     } else if (site === 'drive') {
       siteLabel.textContent = 'Google Drive đã sẵn sàng';
       btnDrive.classList.remove('hidden');
+      if (junkDetails) junkDetails.open = false;
     } else if (site === 'drive-folder') {
       siteLabel.textContent = 'Mở xem trước file Drive (URL /file/d/...) để tải PDF';
+      if (junkDetails) junkDetails.open = false;
     } else {
       siteLabel.textContent = 'Mở tài liệu Studocu, Scribd, Drive hoặc SlideShare để sử dụng';
+      if (junkDetails) junkDetails.open = true;
     }
 
     const actionBlock = document.querySelector('.action-block');
@@ -479,6 +487,13 @@ document.addEventListener('DOMContentLoaded', () => {
       junkBusy = false;
       btnJunk.disabled = false;
       if (junkHint) junkHint.hidden = false;
+    }
+  });
+
+  // Phím tắt bàn phím
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && feedbackDialog.hasAttribute('open')) {
+      closeFeedback();
     }
   });
 });
