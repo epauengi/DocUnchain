@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Extension packaging
+*.crx
+*.pem
+*.zip
+
+# IDEs
+.idea/
+.vscode/
