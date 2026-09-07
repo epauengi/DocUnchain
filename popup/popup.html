@@ -520,14 +520,22 @@
       line-height: 1.4;
     }
 
+    .junk-workload,
     .junk-status {
       min-height: 14px;
-      margin-top: 7px;
       color: var(--muted);
       font-family: var(--mono);
       font-size: 10px;
       line-height: 1.35;
     }
+
+    .junk-workload {
+      margin: 0 1px 8px;
+      color: var(--faint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .junk-status { margin-top: 7px; }
 
     .junk-status.success { color: var(--mint); }
     .junk-status.error { color: var(--danger); }
@@ -698,6 +706,13 @@
 
     .feedback-checkbox input { width: 15px; height: 15px; flex: 0 0 auto; accent-color: var(--blue-strong); }
 
+    .feedback-checkbox-copy { display: grid; gap: 2px; }
+
+    .feedback-checkbox-note {
+      color: var(--faint);
+      font-size: 10px;
+    }
+
     .feedback-status {
       min-height: 30px;
       margin-top: 8px;
@@ -828,7 +843,7 @@
       </button>
     </section>
 
-    <section class="junk-block" aria-label="Tạo PDF rác">
+    <section class="junk-block" aria-label="Tạo PDF mẫu">
       <details id="junk-details">
         <summary class="junk-summary">
           <span>Công cụ tạo PDF mẫu</span>
@@ -850,9 +865,10 @@
               <input id="junk-wiki" type="number" min="1" max="10" value="5" inputmode="numeric" aria-label="Số đoạn Wikipedia">
             </label>
           </div>
+          <div class="junk-workload" id="junk-workload" role="status" aria-live="polite" aria-atomic="true"></div>
           <button class="btn-secondary" id="btn-junk" type="button">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1 7V3.5L18.5 9H15zM8 13h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V9z"/></svg>
-            Tạo PDF rác
+            Tạo PDF mẫu
           </button>
           <div class="junk-status" id="junk-status" role="status" aria-live="polite" aria-atomic="true"></div>
         </div>
@@ -875,8 +891,11 @@
       <textarea class="feedback-textarea feedback-message" id="feedback-message" name="message" maxlength="2000" required placeholder="Ví dụ: Nút tải xuống không hoạt động trên trang..." aria-describedby="feedback-counter feedback-status"></textarea>
       <div class="feedback-meta feedback-counter" id="feedback-counter" aria-live="polite">0/2000</div>
       <label class="feedback-checkbox" for="feedback-page-url">
-        <input class="feedback-page-url" id="feedback-page-url" type="checkbox" checked>
-        <span>Đính kèm địa chỉ trang hiện tại</span>
+        <input class="feedback-page-url" id="feedback-page-url" type="checkbox" aria-describedby="feedback-page-url-note">
+        <span class="feedback-checkbox-copy">
+          <span>Đính kèm địa chỉ trang hiện tại</span>
+          <span class="feedback-checkbox-note" id="feedback-page-url-note">Tùy chọn: URL chỉ được gửi khi bạn chọn và sẽ bỏ thông tin đăng nhập, query, fragment.</span>
+        </span>
       </label>
       <div class="feedback-status" id="feedback-status" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="feedback-actions">

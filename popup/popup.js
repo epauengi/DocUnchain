@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const junkPages = document.getElementById('junk-pages');
   const junkWiki = document.getElementById('junk-wiki');
   const btnJunk = document.getElementById('btn-junk');
+  const junkWorkload = document.getElementById('junk-workload');
   const junkStatus = document.getElementById('junk-status');
 
   let feedbackSending = false;
@@ -448,6 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
   feedbackButton.addEventListener('click', openFeedback);
   feedbackCancel.addEventListener('click', closeFeedback);
   feedbackForm.addEventListener('submit', submitFeedback);
+  [junkFiles, junkPages, junkWiki].forEach((input) => input.addEventListener('input', updateJunkWorkload));
+  updateJunkWorkload();
   feedbackDialog.addEventListener('cancel', (event) => {
     event.preventDefault();
     closeFeedback();
@@ -456,6 +459,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function setJunkStatus(message, type) {
     junkStatus.textContent = message || '';
     junkStatus.className = 'junk-status' + (type ? ` ${type}` : '');
+  }
+
+  function updateJunkWorkload() {
+    if (!junkWorkload || !window.JunkPdf || typeof window.JunkPdf.clamp !== 'function') return;
+    const files = window.JunkPdf.clamp(junkFiles.value);
+    const pages = window.JunkPdf.clamp(junkPages.value);
+    const wiki = window.JunkPdf.clamp(junkWiki.value);
+    const totalPages = files * pages;
+    junkWorkload.textContent = `Sẽ tạo ${files} file · ${totalPages} trang · ${wiki} đoạn Wikipedia`;
   }
 
   btnJunk.addEventListener('click', async () => {
@@ -480,6 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
       junkFiles.value = String(window.JunkPdf.clamp(junkFiles.value));
       junkPages.value = String(window.JunkPdf.clamp(junkPages.value));
       junkWiki.value = String(window.JunkPdf.clamp(junkWiki.value));
+      updateJunkWorkload();
       setJunkStatus(`Đã lưu ${result.files} file × ${result.pages} trang`, 'success');
     } catch (error) {
       setJunkStatus(error && error.message ? error.message : 'Không tạo được PDF.', 'error');

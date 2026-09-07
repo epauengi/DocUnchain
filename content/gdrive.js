@@ -674,29 +674,35 @@
     return /\.pdf$/i.test(name) ? name : name + '.pdf';
   }
 
-  // ========== Overlay tiến trình ==========
+  // ========== Hộp thoại tiến trình ==========
   let overlay = null;
-  let overlayInError = false; // true: nút chuyển thành "Đóng" (chỉ tắt overlay)
+  let overlayState = 'idle';
+  let overlayCloseTimer = null;
 
-  function showOverlay(statusText) {
-    closeOverlay();
-    overlay = document.createElement('div');
-    overlay.id = 'gd-overlay';
-    overlayInError = false;
-    overlay.innerHTML = `
-      <div class="gd-card">
-        <div class="gd-brand">DocUnchain</div>
-        <div class="gd-status" role="status" aria-live="polite"></div>
-        <div class="gd-track gd-indeterminate"><div class="gd-fill"></div></div>
-        <div class="gd-actions"><button type="button" class="gd-cancel">Hủy</button></div>
-      </div>`;
-    overlay.querySelector('.gd-cancel').addEventListener('click', () => {
-      if (overlayInError) { closeOverlay(); return; }
-      cancelled = true;
-      setStatus('Đang hủy...');
-    });
-    document.body.appendChild(overlay);
-    setStatus(statusText || 'Đang khởi tạo...');
+  function clearOverlayCloseTimer() {
+    if (overlayCloseTimer) {
+      clearTimeout(overlayCloseTimer);
+      overlayCloseTimer = null;
+    }
+  }
+
+  function closeOverlay(target = overlay) {
+    clearOverlayCloseTimer();
+    if (!target) return;
+    if (target.open) target.close();
+    target.remove();
+    if (overlay === target) {
+      overlay = null;
+      overlayState = 'idle';
+    }
+  }
+
+  function scheduleOverlayClose() {
+    clearOverlayCloseTimer();
+    const target = overlay;
+    overlayCloseTimer = setTimeout(() => {
+      if (overlay === target && overlayState === 'success') closeOverlay(target);
+    }, 3200);
   }
 
   function setStatus(text) {
@@ -712,18 +718,68 @@
     if (!track || !fill) return;
     if (percent == null) {
       track.classList.add('gd-indeterminate');
+      track.removeAttribute('aria-valuenow');
+      track.setAttribute('aria-valuetext', 'Đang xử lý');
       fill.style.width = '';
-    } else {
-      track.classList.remove('gd-indeterminate');
-      fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
+      return;
+    }
+    const value = Math.max(0, Math.min(100, Math.round(percent)));
+    track.classList.remove('gd-indeterminate');
+    track.setAttribute('aria-valuenow', String(value));
+    track.setAttribute('aria-valuetext', value + '% hoàn thành');
+    fill.style.width = value + '%';
+  }
+
+  function setOverlayState(nextState, text) {
+    if (!overlay) return;
+    clearOverlayCloseTimer();
+    overlayState = nextState;
+    if (text) setStatus(text);
+    const action = overlay.querySelector('.gd-cancel');
+    if (!action) return;
+    const terminal = nextState === 'success' || nextState === 'error';
+    action.disabled = nextState === 'cancelling' || nextState === 'saving';
+    action.textContent = terminal ? 'Đóng' : 'Hủy';
+    action.setAttribute('aria-label', terminal ? 'Đóng hộp thoại xuất PDF' : 'Hủy xuất PDF');
+  }
+
+  function requestOverlayAction() {
+    if (!overlay) return;
+    if (overlayState === 'success' || overlayState === 'error') {
+      closeOverlay();
+    } else if (overlayState === 'running') {
+      cancelled = true;
+      setOverlayState('cancelling', 'Đang hủy...');
     }
   }
 
-  function closeOverlay() {
-    if (overlay) {
-      overlay.remove();
-      overlay = null;
-    }
+  function fail(message) {
+    setOverlayState('error', message);
+    setProgress(null);
+  }
+
+  function showOverlay(statusText) {
+    closeOverlay();
+    overlay = document.createElement('dialog');
+    overlay.id = 'gd-overlay';
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'gd-overlay-title');
+    overlay.setAttribute('aria-describedby', 'gd-overlay-status');
+    overlay.innerHTML = `
+      <div class="gd-card">
+        <div class="gd-brand" id="gd-overlay-title">DocUnchain</div>
+        <div class="gd-status" id="gd-overlay-status" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div class="gd-track gd-indeterminate" role="progressbar" aria-label="Tiến độ xuất PDF" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Đang xử lý"><div class="gd-fill"></div></div>
+        <div class="gd-actions"><button type="button" class="gd-cancel">Hủy</button></div>
+      </div>`;
+    overlay.querySelector('.gd-cancel').addEventListener('click', requestOverlayAction);
+    overlay.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      requestOverlayAction();
+    });
+    document.body.appendChild(overlay);
+    overlay.showModal();
+    setOverlayState('running', statusText || 'Đang khởi tạo...');
   }
 
   // ========== Quy trình chính ==========
@@ -731,11 +787,7 @@
     if (running) return;
     if (!hasPreviewContext()) {
       showOverlay();
-      overlayInError = true;
-      setStatus('Hãy mở xem trước tài liệu trên Google Drive (URL dạng /file/d/...) rồi bấm tải lại.');
-      setProgress(null);
-      const cancelBtn = overlay.querySelector('.gd-cancel');
-      if (cancelBtn) cancelBtn.textContent = 'Đóng';
+      fail('Hãy mở xem trước tài liệu trên Google Drive (URL dạng /file/d/...) rồi bấm tải lại.');
       return;
     }
 
@@ -768,6 +820,11 @@
       setStatus(`Đang ghép ${pages.length} trang...`);
       let pdf = null;
       for (const page of pages) {
+        if (cancelled) {
+          closeOverlay();
+          log('Đã hủy bởi người dùng.');
+          return;
+        }
         const orientation = page.data.width > page.data.height ? 'l' : 'p';
         if (!pdf) {
           pdf = new window.jspdf.jsPDF({
@@ -783,7 +840,7 @@
       }
 
       const exp = expectedTotal();
-      setStatus(`Đang nén và lưu ${pages.length} trang...`);
+      setOverlayState('saving', `Đang nén và lưu ${pages.length} trang. Không thể hủy khi trình duyệt đang lưu.`);
       setProgress(96);
       await delay(60); // cho browser kịp paint
 
@@ -791,20 +848,16 @@
       const shortfall = exp > 0 && pages.length < exp
         ? ` (Drive báo ${exp} trang — hãy thử tải lại nếu còn thiếu)`
         : '';
-      setStatus(`Hoàn tất. Đã lưu ${pages.length} trang.${shortfall}`);
+      setOverlayState('success', `Hoàn tất. Đã lưu ${pages.length} trang.${shortfall}`);
       setProgress(100);
       log('Lưu PDF thành công:', pages.length, 'trang.', exp ? `(UI: ${exp})` : '');
-      setTimeout(closeOverlay, 3200);
+      scheduleOverlayClose();
     } catch (e) {
       const msg = e && e.message === 'no-pages'
         ? 'Không tìm thấy trang nào. Hãy mở xem trước tài liệu rồi thử lại.'
         : 'Lỗi khi tạo PDF: ' + ((e && e.message) || e);
-      overlayInError = true;
-      setStatus(msg);
-      setProgress(null);
+      fail(msg);
       log(msg);
-      const cancelBtn = overlay && overlay.querySelector('.gd-cancel');
-      if (cancelBtn) cancelBtn.textContent = 'Đóng';
     } finally {
       running = false;
     }

@@ -99,19 +99,27 @@
 
 /* 4. Overlay tiến trình trên trang Embed */
 #scribd-embed-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(4, 7, 13, 0.94);
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  overflow: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   color: #eef4fb;
 }
 
+#scribd-embed-overlay::backdrop {
+  background: rgba(4, 7, 13, 0.94);
+}
+
 #scribd-embed-overlay .sd-card {
-  width: 340px;
+  box-sizing: border-box;
+  width: 100%;
   padding: 26px;
   text-align: center;
   border: 1px solid rgba(69, 214, 164, 0.32);
@@ -129,8 +137,9 @@
 }
 
 #scribd-embed-overlay .sd-status {
-  margin-bottom: 16px;
   min-height: 17px;
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
   color: #cbd5e1;
   font-size: 12.5px;
 }
@@ -154,9 +163,12 @@
 }
 
 #scribd-embed-overlay .sd-actions {
+  display: grid;
+  gap: 8px;
   margin-top: 16px;
 }
 
+#scribd-embed-overlay .sd-cancel,
 #scribd-embed-overlay .sd-return {
   width: 100%;
   padding: 10px;
@@ -169,10 +181,17 @@
   cursor: pointer;
 }
 
+#scribd-embed-overlay .sd-cancel:hover:not(:disabled),
 #scribd-embed-overlay .sd-return:hover {
   filter: brightness(1.05);
 }
 
+#scribd-embed-overlay .sd-cancel:disabled {
+  cursor: default;
+  opacity: 0.52;
+}
+
+#scribd-embed-overlay .sd-cancel:focus-visible,
 #scribd-embed-overlay .sd-return:focus-visible {
   outline: 2px solid #a7f3d0;
   outline-offset: 2px;

@@ -21,8 +21,6 @@
   let running = false;
   let cancelled = false;
   let overlay = null;
-  let overlayInError = false;
-  let pptxSaving = false;
 
   function delay(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -233,33 +231,33 @@
     return (name || 'slideshare') + '.pptx';
   }
 
-  function closeOverlay() {
-    if (overlay) {
-      overlay.remove();
-      overlay = null;
+  let overlayState = 'idle';
+  let overlayCloseTimer = null;
+
+  function clearOverlayCloseTimer() {
+    if (overlayCloseTimer) {
+      clearTimeout(overlayCloseTimer);
+      overlayCloseTimer = null;
     }
   }
 
-  function showOverlay(statusText) {
-    closeOverlay();
-    overlay = document.createElement('div');
-    overlay.id = 'ss-overlay';
-    overlayInError = false;
-    overlay.innerHTML = `
-      <div class="ss-card">
-        <div class="ss-brand">DocUnchain</div>
-        <div class="ss-status" role="status" aria-live="polite"></div>
-        <div class="ss-track ss-indeterminate"><div class="ss-fill"></div></div>
-        <div class="ss-actions"><button type="button" class="ss-cancel">Hủy</button></div>
-      </div>`;
-    overlay.querySelector('.ss-cancel').addEventListener('click', () => {
-      if (overlayInError) { closeOverlay(); return; }
-      if (pptxSaving) return;
-      cancelled = true;
-      setStatus('Đang hủy...');
-    });
-    document.body.appendChild(overlay);
-    setStatus(statusText || 'Đang khởi tạo...');
+  function closeOverlay(target = overlay) {
+    clearOverlayCloseTimer();
+    if (!target) return;
+    if (target.open) target.close();
+    target.remove();
+    if (overlay === target) {
+      overlay = null;
+      overlayState = 'idle';
+    }
+  }
+
+  function scheduleOverlayClose() {
+    clearOverlayCloseTimer();
+    const target = overlay;
+    overlayCloseTimer = setTimeout(() => {
+      if (overlay === target && overlayState === 'success') closeOverlay(target);
+    }, 2800);
   }
 
   function setStatus(text) {
@@ -275,19 +273,68 @@
     if (!track || !fill) return;
     if (percent == null) {
       track.classList.add('ss-indeterminate');
+      track.removeAttribute('aria-valuenow');
+      track.setAttribute('aria-valuetext', 'Đang xử lý');
       fill.style.width = '';
-    } else {
-      track.classList.remove('ss-indeterminate');
-      fill.style.width = Math.max(0, Math.min(100, percent)) + '%';
+      return;
+    }
+    const value = Math.max(0, Math.min(100, Math.round(percent)));
+    track.classList.remove('ss-indeterminate');
+    track.setAttribute('aria-valuenow', String(value));
+    track.setAttribute('aria-valuetext', value + '% hoàn thành');
+    fill.style.width = value + '%';
+  }
+
+  function setOverlayState(nextState, text) {
+    if (!overlay) return;
+    clearOverlayCloseTimer();
+    overlayState = nextState;
+    if (text) setStatus(text);
+    const action = overlay.querySelector('.ss-cancel');
+    if (!action) return;
+    const terminal = nextState === 'success' || nextState === 'error';
+    action.disabled = nextState === 'cancelling' || nextState === 'saving';
+    action.textContent = terminal ? 'Đóng' : 'Hủy';
+    action.setAttribute('aria-label', terminal ? 'Đóng hộp thoại xuất tài liệu' : 'Hủy xuất tài liệu');
+  }
+
+  function requestOverlayAction() {
+    if (!overlay) return;
+    if (overlayState === 'success' || overlayState === 'error') {
+      closeOverlay();
+    } else if (overlayState === 'running') {
+      cancelled = true;
+      setOverlayState('cancelling', 'Đang hủy...');
     }
   }
 
-  function fail(msg) {
-    overlayInError = true;
-    setStatus(msg);
+  function showOverlay(statusText) {
+    closeOverlay();
+    overlay = document.createElement('dialog');
+    overlay.id = 'ss-overlay';
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'ss-overlay-title');
+    overlay.setAttribute('aria-describedby', 'ss-overlay-status');
+    overlay.innerHTML = `
+      <div class="ss-card">
+        <div class="ss-brand" id="ss-overlay-title">DocUnchain</div>
+        <div class="ss-status" id="ss-overlay-status" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div class="ss-track ss-indeterminate" role="progressbar" aria-label="Tiến độ xuất tài liệu" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Đang xử lý"><div class="ss-fill"></div></div>
+        <div class="ss-actions"><button type="button" class="ss-cancel">Hủy</button></div>
+      </div>`;
+    overlay.querySelector('.ss-cancel').addEventListener('click', requestOverlayAction);
+    overlay.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      requestOverlayAction();
+    });
+    document.body.appendChild(overlay);
+    overlay.showModal();
+    setOverlayState('running', statusText || 'Đang khởi tạo...');
+  }
+
+  function fail(message) {
+    setOverlayState('error', message);
     setProgress(null);
-    const btn = overlay && overlay.querySelector('.ss-cancel');
-    if (btn) btn.textContent = 'Đóng';
   }
 
   async function collectPages(meta) {
@@ -347,13 +394,13 @@
         pdf.addImage(page.data, 'JPEG', 0, 0, page.width, page.height, undefined, 'FAST');
       }
 
-      setStatus('Đang lưu PDF...');
+      setOverlayState('saving', 'Đang lưu PDF. Không thể hủy khi trình duyệt đang lưu.');
       setProgress(98);
       await delay(40);
       await pdf.save(getFilename(meta.title), { returnPromise: true });
-      setStatus('Hoàn tất. Đã lưu ' + ok.length + ' slide.' + (miss ? ' Thiếu ' + miss + ' slide.' : ''));
+      setOverlayState('success', 'Hoàn tất. Đã lưu ' + ok.length + ' slide.' + (miss ? ' Thiếu ' + miss + ' slide.' : ''));
       setProgress(100);
-      setTimeout(closeOverlay, 2800);
+      scheduleOverlayClose();
     } catch (e) {
       const msg = e && e.message === 'no-slides'
         ? 'Không tải được ảnh slide. Tải lại trang rồi thử lại.'
@@ -394,7 +441,6 @@
 
     running = true;
     cancelled = false;
-    pptxSaving = false;
     showOverlay('Đang nạp slide 0/' + meta.urls.length + '…');
     setProgress(0);
 
@@ -421,22 +467,18 @@
         slide.addImage({ data: ok[i].data, ...fitWide(ok[i]) });
       }
 
-      pptxSaving = true;
-      const cancel = overlay && overlay.querySelector('.ss-cancel');
-      if (cancel) cancel.disabled = true;
-      setStatus('Đang lưu PPTX...');
+      setOverlayState('saving', 'Đang lưu PPTX. Không thể hủy khi trình duyệt đang lưu.');
       setProgress(98);
       await pptx.writeFile({ fileName: getPptxFilename(meta.title) });
-      setStatus('Hoàn tất. Đã lưu PPTX gồm ' + ok.length + ' slide.' + (miss ? ' Thiếu ' + miss + ' slide.' : ''));
+      setOverlayState('success', 'Hoàn tất. Đã lưu PPTX gồm ' + ok.length + ' slide.' + (miss ? ' Thiếu ' + miss + ' slide.' : ''));
       setProgress(100);
-      setTimeout(closeOverlay, 2800);
+      scheduleOverlayClose();
     } catch (e) {
       const msg = e && e.message === 'no-slides'
         ? 'Không tải được ảnh slide. Tải lại trang rồi thử lại.'
         : 'Không thể tạo PPTX. Tải lại trang rồi thử lại.';
       fail(msg);
     } finally {
-      pptxSaving = false;
       running = false;
     }
   }

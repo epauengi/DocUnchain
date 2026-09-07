@@ -57,19 +57,27 @@
 }
 
 #gd-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(4, 7, 13, 0.94);
+  box-sizing: border-box;
+  width: min(340px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  overflow: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
   color: #eef4fb;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
+#gd-overlay::backdrop {
+  background: rgba(4, 7, 13, 0.94);
+}
+
 #gd-overlay .gd-card {
-  width: 340px;
+  box-sizing: border-box;
+  width: 100%;
   padding: 26px;
   text-align: center;
   border: 1px solid rgba(158, 184, 214, 0.32);

@@ -1084,7 +1084,7 @@
   chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     if (req.action === 'START_DOWNLOAD') {
       generatePDF();
-      sendResponse({ status: 'done' });
+      sendResponse({ status: 'started' });
     } else if (req.action === 'AUTO_SCROLL') {
       primeAllPages();
       sendResponse({ status: 'scrolled' });

@@ -53,7 +53,7 @@ Chrome Manifest V3 is the tested target. Other Chromium browsers may work but ar
 - **`Tải PDF SlideShare`**: xuất các ảnh slide công khai đang khả dụng thành PDF cục bộ. Có thể dùng nút trong popup hoặc nút nổi trên trang bài trình bày.
 - **`Tải PPTX SlideShare (ảnh)`**: đóng gói các ảnh slide công khai thành PPTX cục bộ. Mỗi slide PowerPoint là một ảnh đã render; text, shape, chart, ghi chú, link, animation và layer gốc không thể chỉnh sửa. Canvas dùng 16:9, giữ đúng tỉ lệ ảnh, không crop; slide dọc có viền đen.
 - **`Tải PDF Google Drive`**: quét bản xem trước rồi tạo PDF từ các trang đã render. Chờ hoàn tất trước khi đóng trang.
-- **`Tạo PDF rác`**: công cụ PDF mẫu tùy chọn, giới hạn 1–10 tệp, 1–10 trang mỗi tệp và 1–10 đoạn Wikipedia. Tên nút giữ nguyên theo giao diện.
+- **`Tạo PDF mẫu`**: công cụ tùy chọn, giới hạn 1–10 tệp, 1–10 trang mỗi tệp và 1–10 đoạn Wikipedia. Popup hiển thị trước tổng số trang sau khi áp dụng các giới hạn này.
 
 ## Quyền riêng tư & quyền hạn / Privacy & permissions
 
@@ -73,9 +73,9 @@ Hosts in [manifest.json](manifest.json) serve only these flows: Studocu/Studeers
 ### Lời gọi bên ngoài tùy chọn / Optional external calls
 
 - **PDF mẫu**: lấy tóm tắt ngẫu nhiên từ `vi.wikipedia.org` hoặc `en.wikipedia.org` khi có mạng; dùng Lorem cục bộ nếu không lấy được.
-- **Báo lỗi**: chỉ gửi sau khi người dùng bấm **Gửi báo lỗi**. FormSubmit nhận nội dung phản hồi, tên/phiên bản extension, thông tin trình duyệt, thời điểm gửi, cùng URL trang hiện tại *nếu* người dùng giữ tùy chọn đính kèm URL. URL này loại bỏ thông tin đăng nhập, query và fragment. Không gửi dữ liệu nhạy cảm trong phản hồi.
+- **Báo lỗi**: chỉ gửi sau khi người dùng bấm **Gửi báo lỗi**. FormSubmit nhận nội dung phản hồi, tên/phiên bản extension, thông tin trình duyệt và thời điểm gửi. URL trang hiện tại chỉ được gửi khi người dùng chủ động chọn tùy chọn đính kèm URL; URL loại bỏ thông tin đăng nhập, query và fragment. Không gửi dữ liệu nhạy cảm trong phản hồi.
 - **Sample PDF**: fetches random summaries from `vi.wikipedia.org` or `en.wikipedia.org` when available; it falls back to local Lorem text on failure.
-- **Feedback**: sent only after the user presses **Gửi báo lỗi**. FormSubmit receives the report, extension name/version, browser information, timestamp, and the current-page URL *only if* the user keeps the URL option enabled. That URL has credentials, query, and fragment removed. Do not submit sensitive data.
+- **Feedback**: sent only after the user presses **Gửi báo lỗi**. FormSubmit receives the report, extension name/version, browser information, and timestamp. The current-page URL is sent only when the user explicitly opts in; credentials, query, and fragment are removed. Do not submit sensitive data.
 
 ## Giới hạn & sử dụng hợp pháp / Limitations & lawful use
 
