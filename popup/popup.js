@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let resetArmed = false;
   let resetTimer = null;
   const RESET_LABEL = 'Reset phiên Studocu';
-  const RESET_CONFIRM = 'Xác nhận reset?';
+  const RESET_CONFIRM = 'Xác nhận xóa cookie & reload?';
 
   try {
     const manifest = chrome.runtime.getManifest();
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (junkDetails) junkDetails.open = false;
     } else {
       siteLabel.textContent = 'Mở tài liệu Studocu, Scribd, Drive hoặc SlideShare để sử dụng';
-      if (junkDetails) junkDetails.open = true;
+      if (junkDetails) junkDetails.open = false;
     }
 
     const actionBlock = document.querySelector('.action-block');
@@ -392,10 +392,12 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSlideshare.addEventListener('click', startDownload);
   btnSlidesharePptx.addEventListener('click', startSlidesharePptx);
 
-  function setResetLabel(text) {
+  function setResetLabel(text, isArmed = false) {
     const svg = btnReset.querySelector('svg');
     btnReset.textContent = text;
     if (svg) btnReset.prepend(svg);
+    btnReset.style.borderColor = isArmed ? 'rgba(255, 161, 161, 0.5)' : '';
+    btnReset.style.color = isArmed ? 'var(--danger)' : '';
   }
 
   // Reset phiên Studocu (xoá cookie + reload). Two-click confirm.
@@ -403,11 +405,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (downloadBusy) return;
     if (!resetArmed) {
       resetArmed = true;
-      setResetLabel(RESET_CONFIRM);
+      setResetLabel(RESET_CONFIRM, true);
       resetTimer = setTimeout(() => {
         resetArmed = false;
         resetTimer = null;
-        setResetLabel(RESET_LABEL);
+        setResetLabel(RESET_LABEL, false);
       }, 4000);
       return;
     }
@@ -416,6 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(resetTimer);
       resetTimer = null;
     }
+    setResetLabel(RESET_LABEL, false);
 
     const tab = await getActiveTab();
     if (!tab) {

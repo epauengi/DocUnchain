@@ -168,7 +168,35 @@
   margin-top: 16px;
 }
 
-#scribd-embed-overlay .sd-cancel,
+#scribd-embed-overlay .sd-cancel {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(158, 184, 214, 0.32);
+  border-radius: 10px;
+  background: transparent;
+  color: #a5b4c8;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+#scribd-embed-overlay .sd-cancel:hover:not(:disabled) {
+  background: rgba(158, 184, 214, 0.14);
+  color: #eef4fb;
+  border-color: rgba(158, 184, 214, 0.45);
+}
+
+#scribd-embed-overlay .sd-cancel:disabled {
+  cursor: default;
+  opacity: 0.52;
+}
+
+#scribd-embed-overlay .sd-cancel:focus-visible {
+  outline: 2px solid #a7f3d0;
+  outline-offset: 2px;
+}
+
 #scribd-embed-overlay .sd-return {
   width: 100%;
   padding: 10px;
@@ -179,19 +207,19 @@
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 10px 24px -10px rgba(22, 168, 119, 0.8);
+  transition: filter 160ms ease, transform 130ms ease;
 }
 
-#scribd-embed-overlay .sd-cancel:hover:not(:disabled),
 #scribd-embed-overlay .sd-return:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
 }
 
-#scribd-embed-overlay .sd-cancel:disabled {
-  cursor: default;
-  opacity: 0.52;
+#scribd-embed-overlay .sd-return:active {
+  transform: translateY(1px);
 }
 
-#scribd-embed-overlay .sd-cancel:focus-visible,
 #scribd-embed-overlay .sd-return:focus-visible {
   outline: 2px solid #a7f3d0;
   outline-offset: 2px;
