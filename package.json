@@ -4,7 +4,7 @@
   "description": "DocUnchain - export authorized documents as PDFs and SlideShare previews as PPTX",
   "main": "index.js",
   "scripts": {
-    "test": "node test/scribd-print-layout.test.js && node test/feedback.test.js && node test/gdrive.test.js && node test/slideshare.test.js && node test/pptx-structure.test.js"
+    "test": "node test/scribd-print-layout.test.js && node test/feedback.test.js && node test/gdrive.test.js && node test/slideshare.test.js && node test/pptx-structure.test.js && node test/ui-state.test.js"
   },
   "keywords": [],
   "author": "",

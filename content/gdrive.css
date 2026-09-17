@@ -4,52 +4,70 @@
    ============================================================ */
 
 .gd-dl-button {
+  box-sizing: border-box;
   position: fixed;
-  right: 22px;
-  bottom: 26px;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 2147483000;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 18px;
-  border: 1px solid rgba(218, 233, 255, 0.6);
+  min-width: 44px;
+  min-height: 44px;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 10px;
-  background: linear-gradient(180deg, #4285f4 0%, #1a63d8 100%);
+  background: #1559b7;
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font: 600 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 10px 28px -10px rgba(26, 99, 216, 0.85);
-  transition: transform 140ms ease, filter 160ms ease, box-shadow 180ms ease;
+  box-shadow: 0 4px 12px rgba(4, 7, 13, 0.2);
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 .gd-dl-button svg {
-  width: 16px;
-  height: 16px;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
   flex: 0 0 auto;
   fill: currentColor;
 }
 
-.gd-dl-button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.07);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 14px 32px -10px rgba(59, 130, 246, 0.95);
+.gd-dl-button > span {
+  min-width: 0;
+  font: inherit;
 }
 
-.gd-dl-button:active {
-  transform: translateY(1px);
-  filter: brightness(0.97);
+.gd-dl-button:hover:not(:disabled) {
+  background: #124c9d;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.gd-dl-button:active:not(:disabled) {
+  background: #103f82;
+}
+
+.gd-dl-button:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .gd-dl-button:focus-visible {
   outline: 2px solid #a9d6ff;
-  outline-offset: 2px;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px #0a111d;
 }
 
 .gd-dl-button.gd-hidden {
@@ -58,8 +76,8 @@
 
 #gd-overlay {
   box-sizing: border-box;
-  width: min(340px, calc(100vw - 32px));
-  max-width: none;
+  width: 380px;
+  max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
   margin: auto;
   overflow: auto;
@@ -68,55 +86,91 @@
   border-radius: 12px;
   background: transparent;
   color: #eef4fb;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font: 400 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: left;
 }
 
 #gd-overlay::backdrop {
-  background: rgba(4, 7, 13, 0.94);
+  background: rgba(4, 7, 13, 0.8);
 }
 
 #gd-overlay .gd-card {
   box-sizing: border-box;
   width: 100%;
-  padding: 26px;
-  text-align: center;
-  border: 1px solid rgba(158, 184, 214, 0.32);
+  padding: 24px;
+  text-align: left;
+  line-height: 1.5;
+  border: 1px solid #334155;
   border-radius: 12px;
-  background: rgba(10, 17, 29, 0.96);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  background: #0a111d;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 #gd-overlay .gd-brand {
-  margin-bottom: 6px;
+  margin: 0 0 8px;
   color: #8ab4f8;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+#gd-overlay .gd-title {
+  margin: 0 0 8px;
+  color: #eef4fb;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 #gd-overlay .gd-status {
-  margin-bottom: 16px;
-  min-height: 17px;
+  min-height: 21px;
+  margin: 0 0 16px;
   overflow-wrap: anywhere;
   color: #cbd5e1;
-  font-size: 12.5px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+#gd-overlay[data-state="success"] .gd-status,
+#gd-overlay[data-state="error"] .gd-status {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 500;
+}
+
+#gd-overlay[data-state="success"] .gd-status {
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+#gd-overlay[data-state="error"] .gd-status {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(248, 113, 113, 0.2);
 }
 
 #gd-overlay .gd-track {
+  box-sizing: border-box;
   width: 100%;
   height: 6px;
+  margin: 0;
   overflow: hidden;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #263448;
 }
 
 #gd-overlay .gd-fill {
   width: 0%;
   height: 100%;
   border-radius: 8px;
-  background: linear-gradient(90deg, #4285f4, #8ab4f8);
-  box-shadow: 0 0 10px rgba(138, 180, 248, 0.55);
-  transition: width 0.2s ease;
+  background: #8ab4f8;
 }
 
 #gd-overlay .gd-track.gd-indeterminate .gd-fill {
@@ -130,30 +184,46 @@
 }
 
 #gd-overlay .gd-actions {
-  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
 }
 
 #gd-overlay .gd-cancel {
+  box-sizing: border-box;
   width: 100%;
-  padding: 10px;
-  border: 1px solid rgba(158, 184, 214, 0.32);
-  border-radius: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #526176;
+  border-radius: 8px;
   background: transparent;
-  color: #a5b4c8;
-  font-size: 12.5px;
+  color: #cbd5e1;
+  font: inherit;
   font-weight: 600;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
-#gd-overlay .gd-cancel:hover {
-  background: rgba(158, 184, 214, 0.14);
+#gd-overlay .gd-cancel:hover:not(:disabled) {
+  background: #1b293b;
   color: #eef4fb;
+  border-color: #718198;
+}
+
+#gd-overlay .gd-cancel:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 #gd-overlay .gd-cancel:focus-visible {
   outline: 2px solid #a9d6ff;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -161,11 +231,36 @@
     animation: none;
     transition: none;
   }
-  .gd-dl-button {
+  .gd-dl-button,
+  #gd-overlay .gd-cancel {
     transition: none;
   }
-  .gd-dl-button:hover,
-  .gd-dl-button:active {
-    transform: none;
+}
+
+@media (forced-colors: active) {
+  .gd-dl-button,
+  #gd-overlay .gd-card,
+  #gd-overlay .gd-cancel {
+    border-color: ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+  }
+  #gd-overlay .gd-brand,
+  #gd-overlay .gd-title,
+  #gd-overlay .gd-status {
+    color: CanvasText;
+  }
+  #gd-overlay .gd-track {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  #gd-overlay .gd-fill {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+  .gd-dl-button:focus-visible,
+  #gd-overlay .gd-cancel:focus-visible {
+    outline-color: Highlight;
   }
 }

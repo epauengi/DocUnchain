@@ -239,61 +239,66 @@ div[id^="google_ads_iframe"],
 
 /* ========== Download button ========== */
 .download-button-1 {
-  background: linear-gradient(180deg, #2b83ea 0%, #1668d6 100%);
-  color: #fff;
-  border: 1px solid rgba(140, 196, 255, 0.55);
+  box-sizing: border-box;
+  background: #1559b7;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 10px;
-  padding: 10px 24px;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 16px;
+  font: 600 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: normal;
+  text-align: center;
+  text-decoration: none;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 8px;
   margin: 8px auto;
   width: fit-content;
   position: relative;
   z-index: 10;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    0 12px 30px -12px rgba(43, 131, 234, 0.85);
+  box-shadow: 0 4px 12px rgba(4, 7, 13, 0.2);
   cursor: pointer;
-  transition: background-color 170ms ease, border-color 190ms ease, box-shadow 220ms ease, transform 130ms ease, filter 180ms ease;
-  text-decoration: none;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.download-button-1:hover {
-  background: linear-gradient(180deg, #3b90f2 0%, #1e73de 100%);
-  filter: brightness(1.05);
-  border-color: rgba(176, 214, 255, 0.75);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 14px 34px -12px rgba(59, 145, 245, 0.95);
-  transform: translateY(-1px);
+.download-button-1:hover:not(:disabled) {
+  background: #124c9d;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
-.download-button-1:active {
-  transform: translateY(1px);
-  filter: brightness(0.97);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 5px 16px -10px rgba(21, 101, 206, 0.7);
+.download-button-1:active:not(:disabled) {
+  background: #103f82;
+}
+
+.download-button-1:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .download-button-1:focus-visible {
   outline: 2px solid #a9d6ff;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .download-button-1 > span[aria-hidden="true"] {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.15);
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.08);
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .download-button-1 svg {
@@ -303,9 +308,34 @@ div[id^="google_ads_iframe"],
   flex-shrink: 0;
 }
 
+.download-button-1 .download-text {
+  min-width: 0;
+  font: inherit;
+}
+
 @media (max-width: 600px) {
-  .download-text { display: none; }
-  .download-button-1 { padding: 10px 20px; font-size: 13px; }
+  .download-button-1 {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .download-button-1 {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .download-button-1 {
+    border-color: ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+  }
+  .download-button-1:focus-visible {
+    outline-color: Highlight;
+  }
 }
 
 @media print {

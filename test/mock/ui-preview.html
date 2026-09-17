@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DocUnchain production UI fixture</title>
+  <style>
+    body { margin: 0; background: #f3f4f6; }
+    #fixture-shell { padding: 24px; color: #202124; font: 14px/1.5 system-ui, sans-serif; }
+    #fixture-shell h1 { font-size: 18px; margin: 0 0 12px; }
+    #fixture-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+    #fixture-controls label { display: grid; gap: 4px; }
+    #fixture-controls select, #fixture-controls button { font: inherit; min-height: 36px; }
+    #fixture-note { max-width: 72ch; }
+    #fixture-status { display: block; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <main id="fixture-shell">
+    <h1>Production UI fixture</h1>
+    <form id="fixture-controls">
+      <label>Site
+        <select id="fixture-site">
+          <option value="gdrive">Google Drive</option>
+          <option value="slideshare">SlideShare</option>
+          <option value="scribd">Scribd</option>
+          <option value="studocu">Studocu</option>
+        </select>
+      </label>
+      <label>State
+        <select id="fixture-state">
+          <option value="running">Running</option>
+          <option value="indeterminate">Running (indeterminate)</option>
+          <option value="cancelling">Cancelling</option>
+          <option value="saving">Saving</option>
+          <option value="printing">Printing</option>
+          <option value="success">Success / ready</option>
+          <option value="error">Error</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </label>
+      <button id="fixture-open" type="submit">Open / reload source</button>
+    </form>
+    <p id="fixture-note">Visual-only fixture. Production helpers and CSS; mock document content, no capture or download workflow. Open reloads source after edits. Unsupported states are disabled. Studocu success includes three fixed-size pages; its print button uses the real browser print handler.</p>
+    <output id="fixture-status" aria-live="polite">Choose a site and state, then Open. No dialog opens automatically.</output>
+  </main>
+  <script src="./ui-preview.js"></script>
+</body>
+</html>

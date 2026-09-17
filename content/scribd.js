@@ -237,7 +237,24 @@
   function setOverlayState(nextState, text) {
     if (!overlay) return;
     overlayState = nextState;
+    overlay.setAttribute('data-state', nextState);
     if (text) updateOverlay(text);
+    const trackEl = overlay.querySelector('.sd-track');
+    const barEl = overlay.querySelector('.sd-fill');
+    if (trackEl) {
+      if (nextState === 'error' || nextState === 'cancelled') {
+        trackEl.hidden = true;
+        trackEl.removeAttribute('aria-busy');
+        trackEl.removeAttribute('aria-valuenow');
+        trackEl.setAttribute('aria-valuetext', 'Đang xử lý');
+        if (barEl) barEl.style.width = '';
+      } else if (nextState === 'success') {
+        trackEl.hidden = false;
+        trackEl.setAttribute('aria-busy', 'false');
+      } else {
+        trackEl.hidden = false;
+      }
+    }
     const action = overlay.querySelector('.sd-cancel');
     if (!action) return;
     const terminal = nextState === 'success' || nextState === 'error' || nextState === 'cancelled';
@@ -253,7 +270,10 @@
     const barEl = overlay.querySelector('.sd-fill');
     if (statusEl && title) statusEl.textContent = title;
     if (!trackEl || !barEl || percent == null) return;
+    if (overlayState === 'error' || overlayState === 'cancelled') return;
+    trackEl.hidden = false;
     const value = Math.max(0, Math.min(100, Math.round(percent)));
+    trackEl.setAttribute('aria-busy', value < 100 ? 'true' : 'false');
     trackEl.setAttribute('aria-valuenow', String(value));
     trackEl.setAttribute('aria-valuetext', value + '% hoàn thành');
     barEl.style.width = `${value}%`;
@@ -308,14 +328,16 @@
     closeOverlay();
     overlay = document.createElement('dialog');
     overlay.id = 'scribd-embed-overlay';
+    overlay.lang = 'vi';
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-labelledby', 'sd-overlay-title');
     overlay.setAttribute('aria-describedby', 'sd-status');
     overlay.innerHTML = `
       <div class="sd-card">
-        <div class="sd-brand" id="sd-overlay-title">DocUnchain</div>
+        <div class="sd-brand" aria-hidden="true">DocUnchain</div>
+        <h2 class="sd-title" id="sd-overlay-title">Xuất PDF · Scribd</h2>
         <div class="sd-status" id="sd-status" role="status" aria-live="polite" aria-atomic="true">Đang khởi tạo...</div>
-        <div class="sd-track" role="progressbar" aria-label="Tiến độ chuẩn bị xuất PDF" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% hoàn thành"><div class="sd-fill"></div></div>
+        <div class="sd-track" role="progressbar" aria-label="Tiến độ chuẩn bị xuất PDF" aria-busy="true" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0% hoàn thành"><div class="sd-fill"></div></div>
         <div class="sd-actions sd-action-container"><button type="button" class="sd-cancel">Hủy</button></div>
       </div>
     `;

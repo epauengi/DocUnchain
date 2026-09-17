@@ -712,19 +712,23 @@
   }
 
   function setProgress(percent) {
-    if (!overlay) return;
+    if (!overlay || overlayState === 'error' || overlayState === 'cancelled') return;
     const track = overlay.querySelector('.gd-track');
     const fill = overlay.querySelector('.gd-fill');
     if (!track || !fill) return;
     if (percent == null) {
+      track.hidden = false;
       track.classList.add('gd-indeterminate');
+      track.setAttribute('aria-busy', 'true');
       track.removeAttribute('aria-valuenow');
       track.setAttribute('aria-valuetext', 'Đang xử lý');
       fill.style.width = '';
       return;
     }
     const value = Math.max(0, Math.min(100, Math.round(percent)));
+    track.hidden = false;
     track.classList.remove('gd-indeterminate');
+    track.setAttribute('aria-busy', value < 100 ? 'true' : 'false');
     track.setAttribute('aria-valuenow', String(value));
     track.setAttribute('aria-valuetext', value + '% hoàn thành');
     fill.style.width = value + '%';
@@ -734,10 +738,29 @@
     if (!overlay) return;
     clearOverlayCloseTimer();
     overlayState = nextState;
+    overlay.setAttribute('data-state', nextState);
     if (text) setStatus(text);
+    const track = overlay.querySelector('.gd-track');
+    const fill = overlay.querySelector('.gd-fill');
+    if (track) {
+      if (nextState === 'error' || nextState === 'cancelled') {
+        track.hidden = true;
+        track.classList.remove('gd-indeterminate');
+        track.removeAttribute('aria-busy');
+        track.removeAttribute('aria-valuenow');
+        track.setAttribute('aria-valuetext', 'Đang xử lý');
+        if (fill) fill.style.width = '';
+      } else if (nextState === 'success') {
+        track.hidden = false;
+        track.classList.remove('gd-indeterminate');
+        track.setAttribute('aria-busy', 'false');
+      } else {
+        track.hidden = false;
+      }
+    }
     const action = overlay.querySelector('.gd-cancel');
     if (!action) return;
-    const terminal = nextState === 'success' || nextState === 'error';
+    const terminal = nextState === 'success' || nextState === 'error' || nextState === 'cancelled';
     action.disabled = nextState === 'cancelling' || nextState === 'saving';
     action.textContent = terminal ? 'Đóng' : 'Hủy';
     action.setAttribute('aria-label', terminal ? 'Đóng hộp thoại xuất PDF' : 'Hủy xuất PDF');
@@ -745,7 +768,7 @@
 
   function requestOverlayAction() {
     if (!overlay) return;
-    if (overlayState === 'success' || overlayState === 'error') {
+    if (overlayState === 'success' || overlayState === 'error' || overlayState === 'cancelled') {
       closeOverlay();
     } else if (overlayState === 'running') {
       cancelled = true;
@@ -755,21 +778,22 @@
 
   function fail(message) {
     setOverlayState('error', message);
-    setProgress(null);
   }
 
   function showOverlay(statusText) {
     closeOverlay();
     overlay = document.createElement('dialog');
     overlay.id = 'gd-overlay';
+    overlay.lang = 'vi';
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-labelledby', 'gd-overlay-title');
     overlay.setAttribute('aria-describedby', 'gd-overlay-status');
     overlay.innerHTML = `
       <div class="gd-card">
-        <div class="gd-brand" id="gd-overlay-title">DocUnchain</div>
+        <div class="gd-brand" aria-hidden="true">DocUnchain</div>
+        <h2 class="gd-title" id="gd-overlay-title">Xuất PDF · Google Drive</h2>
         <div class="gd-status" id="gd-overlay-status" role="status" aria-live="polite" aria-atomic="true"></div>
-        <div class="gd-track gd-indeterminate" role="progressbar" aria-label="Tiến độ xuất PDF" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Đang xử lý"><div class="gd-fill"></div></div>
+        <div class="gd-track gd-indeterminate" role="progressbar" aria-label="Tiến độ xuất PDF" aria-busy="true" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Đang xử lý"><div class="gd-fill"></div></div>
         <div class="gd-actions"><button type="button" class="gd-cancel">Hủy</button></div>
       </div>`;
     overlay.querySelector('.gd-cancel').addEventListener('click', requestOverlayAction);

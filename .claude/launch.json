@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ui-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["test/mock/server.js"],
+      "port": 8931
+    }
+  ]
+}

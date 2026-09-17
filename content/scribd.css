@@ -40,68 +40,77 @@
 
 /* 3. Floating Button góc dưới trên Scribd (Không hiển thị khi in) */
 .scribd-dl-button {
+  box-sizing: border-box;
   position: fixed;
-  bottom: 25px;
-  right: 25px;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 2147483647;
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 10.5px 18px;
-  background: linear-gradient(180deg, #16a877 0%, #0c7d59 100%);
-  color: #ffffff;
-  border: 1px solid rgba(110, 226, 183, 0.55);
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 10px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  background: #087a57;
+  color: #ffffff;
+  font: 600 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    0 12px 30px -12px rgba(22, 168, 119, 0.85);
-  transition: background-color 170ms ease, border-color 190ms ease, box-shadow 220ms ease, transform 130ms ease, filter 180ms ease;
+  box-shadow: 0 4px 12px rgba(4, 7, 13, 0.2);
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-.scribd-dl-button:hover {
-  background: linear-gradient(180deg, #1cb984 0%, #0e8c64 100%);
-  filter: brightness(1.05);
-  border-color: rgba(152, 240, 205, 0.75);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 14px 34px -12px rgba(27, 187, 134, 0.95);
+.scribd-dl-button svg {
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  flex: 0 0 auto;
+  fill: currentColor;
 }
 
-.scribd-dl-button:active {
-  transform: translateY(1px);
-  filter: brightness(0.97);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 5px 16px -10px rgba(12, 125, 89, 0.7);
+.scribd-dl-button > span {
+  min-width: 0;
+  font: inherit;
+}
+
+.scribd-dl-button:hover:not(:disabled) {
+  background: #06674a;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.scribd-dl-button:active:not(:disabled) {
+  background: #05533c;
+}
+
+.scribd-dl-button:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .scribd-dl-button:focus-visible {
   outline: 2px solid #a7f3d0;
-  outline-offset: 2px;
-}
-
-.scribd-dl-button svg {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  padding: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 7px;
-  box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.15);
-  fill: currentColor;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px #0a111d;
 }
 
 /* 4. Overlay tiến trình trên trang Embed */
 #scribd-embed-overlay {
   box-sizing: border-box;
-  width: min(340px, calc(100vw - 32px));
-  max-width: none;
+  width: 380px;
+  max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
   margin: auto;
   overflow: auto;
@@ -109,127 +118,186 @@
   border: 0;
   border-radius: 12px;
   background: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   color: #eef4fb;
+  font: 400 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: left;
 }
 
 #scribd-embed-overlay::backdrop {
-  background: rgba(4, 7, 13, 0.94);
+  background: rgba(4, 7, 13, 0.8);
 }
 
 #scribd-embed-overlay .sd-card {
   box-sizing: border-box;
   width: 100%;
-  padding: 26px;
-  text-align: center;
-  border: 1px solid rgba(69, 214, 164, 0.32);
+  padding: 24px;
+  text-align: left;
+  line-height: 1.5;
+  border: 1px solid #334155;
   border-radius: 12px;
-  background: rgba(10, 17, 29, 0.96);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  background: #0a111d;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 #scribd-embed-overlay .sd-brand {
-  margin-bottom: 6px;
+  margin: 0 0 8px;
   color: #45d6a4;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+#scribd-embed-overlay .sd-title {
+  margin: 0 0 8px;
+  color: #eef4fb;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 #scribd-embed-overlay .sd-status {
-  min-height: 17px;
-  margin-bottom: 16px;
+  min-height: 21px;
+  margin: 0 0 16px;
   overflow-wrap: anywhere;
   color: #cbd5e1;
-  font-size: 12.5px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+#scribd-embed-overlay[data-state="success"] .sd-status,
+#scribd-embed-overlay[data-state="error"] .sd-status {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 500;
+}
+
+#scribd-embed-overlay[data-state="success"] .sd-status {
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+#scribd-embed-overlay[data-state="error"] .sd-status {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(248, 113, 113, 0.2);
 }
 
 #scribd-embed-overlay .sd-track {
+  box-sizing: border-box;
   width: 100%;
   height: 6px;
+  margin: 0;
   overflow: hidden;
-  margin-bottom: 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #263448;
 }
 
 #scribd-embed-overlay .sd-fill {
   width: 0%;
   height: 100%;
   border-radius: 8px;
-  background: linear-gradient(90deg, #0f8f66, #45d6a4);
-  box-shadow: 0 0 10px rgba(69, 214, 164, 0.5);
-  transition: width 0.2s ease;
+  background: #45d6a4;
 }
 
 #scribd-embed-overlay .sd-actions {
   display: grid;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 #scribd-embed-overlay .sd-cancel {
+  box-sizing: border-box;
   width: 100%;
-  padding: 10px;
-  border: 1px solid rgba(158, 184, 214, 0.32);
-  border-radius: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #526176;
+  border-radius: 8px;
   background: transparent;
-  color: #a5b4c8;
-  font-size: 12.5px;
+  color: #cbd5e1;
+  font: inherit;
   font-weight: 600;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
 #scribd-embed-overlay .sd-cancel:hover:not(:disabled) {
-  background: rgba(158, 184, 214, 0.14);
+  background: #1b293b;
   color: #eef4fb;
-  border-color: rgba(158, 184, 214, 0.45);
+  border-color: #718198;
 }
 
 #scribd-embed-overlay .sd-cancel:disabled {
   cursor: default;
-  opacity: 0.52;
+  opacity: 0.6;
 }
 
 #scribd-embed-overlay .sd-cancel:focus-visible {
   outline: 2px solid #a7f3d0;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 #scribd-embed-overlay .sd-return {
+  box-sizing: border-box;
   width: 100%;
-  padding: 10px;
-  border: 1px solid rgba(110, 226, 183, 0.55);
-  border-radius: 10px;
-  background: linear-gradient(180deg, #16a877 0%, #0c7d59 100%);
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  background: #087a57;
   color: #ffffff;
-  font-size: 12.5px;
+  font: inherit;
   font-weight: 600;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), 0 10px 24px -10px rgba(22, 168, 119, 0.8);
-  transition: filter 160ms ease, transform 130ms ease;
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
-#scribd-embed-overlay .sd-return:hover {
-  filter: brightness(1.06);
-  transform: translateY(-1px);
+#scribd-embed-overlay .sd-return:hover:not(:disabled) {
+  background: #06674a;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
-#scribd-embed-overlay .sd-return:active {
-  transform: translateY(1px);
+#scribd-embed-overlay .sd-return:active:not(:disabled) {
+  background: #05533c;
+}
+
+#scribd-embed-overlay .sd-return:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 #scribd-embed-overlay .sd-return:focus-visible {
   outline: 2px solid #a7f3d0;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #scribd-embed-overlay .sd-fill { transition: none; }
-  .scribd-dl-button { transition: none; }
-  .scribd-dl-button:hover,
-  .scribd-dl-button:active { transform: none; }
+  #scribd-embed-overlay .sd-fill {
+    transition: none;
+  }
+  .scribd-dl-button,
+  #scribd-embed-overlay .sd-cancel,
+  #scribd-embed-overlay .sd-return {
+    transition: none;
+  }
 }
 
 /* 5. Ẩn tất cả nút bấm và thanh công cụ khi in */
@@ -238,5 +306,35 @@
   #scribd-dl-btn-native,
   #scribd-embed-overlay {
     display: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .scribd-dl-button,
+  #scribd-embed-overlay .sd-card,
+  #scribd-embed-overlay .sd-cancel,
+  #scribd-embed-overlay .sd-return {
+    border-color: ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+  }
+  #scribd-embed-overlay .sd-brand,
+  #scribd-embed-overlay .sd-title,
+  #scribd-embed-overlay .sd-status {
+    color: CanvasText;
+  }
+  #scribd-embed-overlay .sd-track {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  #scribd-embed-overlay .sd-fill {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+  .scribd-dl-button:focus-visible,
+  #scribd-embed-overlay .sd-cancel:focus-visible,
+  #scribd-embed-overlay .sd-return:focus-visible {
+    outline-color: Highlight;
   }
 }

@@ -4,52 +4,70 @@
    ============================================================ */
 
 .ss-dl-button {
+  box-sizing: border-box;
   position: fixed;
-  right: 22px;
-  bottom: 26px;
+  right: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 2147483000;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 18px;
-  border: 1px solid rgba(110, 226, 183, 0.55);
+  min-width: 44px;
+  min-height: 44px;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 10px;
-  background: linear-gradient(180deg, #16a877 0%, #0c7d59 100%);
+  background: #087a57;
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font: 600 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.26),
-    0 12px 30px -12px rgba(22, 168, 119, 0.85);
-  transition: transform 140ms ease, filter 160ms ease, box-shadow 180ms ease;
+  box-shadow: 0 4px 12px rgba(4, 7, 13, 0.2);
+  transition: background-color 150ms ease, border-color 150ms ease;
 }
 
 .ss-dl-button svg {
-  width: 16px;
-  height: 16px;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
   flex: 0 0 auto;
   fill: currentColor;
 }
 
-.ss-dl-button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.07);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 14px 34px -12px rgba(27, 187, 134, 0.95);
+.ss-dl-button > span {
+  min-width: 0;
+  font: inherit;
 }
 
-.ss-dl-button:active {
-  transform: translateY(1px);
-  filter: brightness(0.97);
+.ss-dl-button:hover:not(:disabled) {
+  background: #06674a;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.ss-dl-button:active:not(:disabled) {
+  background: #05533c;
+}
+
+.ss-dl-button:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 .ss-dl-button:focus-visible {
-  outline: 2px solid #a9d6ff;
-  outline-offset: 2px;
+  outline: 2px solid #a7f3d0;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px #0a111d;
 }
 
 .ss-dl-button.ss-hidden {
@@ -58,8 +76,8 @@
 
 #ss-overlay {
   box-sizing: border-box;
-  width: min(340px, calc(100vw - 32px));
-  max-width: none;
+  width: 380px;
+  max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
   margin: auto;
   overflow: auto;
@@ -68,55 +86,91 @@
   border-radius: 12px;
   background: transparent;
   color: #eef4fb;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font: 400 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: normal;
+  text-align: left;
 }
 
 #ss-overlay::backdrop {
-  background: rgba(4, 7, 13, 0.94);
+  background: rgba(4, 7, 13, 0.8);
 }
 
 #ss-overlay .ss-card {
   box-sizing: border-box;
   width: 100%;
-  padding: 26px;
-  text-align: center;
-  border: 1px solid rgba(158, 184, 214, 0.32);
+  padding: 24px;
+  text-align: left;
+  line-height: 1.5;
+  border: 1px solid #334155;
   border-radius: 12px;
-  background: rgba(10, 17, 29, 0.96);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  background: #0a111d;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 #ss-overlay .ss-brand {
-  margin-bottom: 6px;
+  margin: 0 0 8px;
   color: #45d6a4;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+#ss-overlay .ss-title {
+  margin: 0 0 8px;
+  color: #eef4fb;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 #ss-overlay .ss-status {
-  margin-bottom: 16px;
-  min-height: 17px;
+  min-height: 21px;
+  margin: 0 0 16px;
   overflow-wrap: anywhere;
   color: #cbd5e1;
-  font-size: 12.5px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+#ss-overlay[data-state="success"] .ss-status,
+#ss-overlay[data-state="error"] .ss-status {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 500;
+}
+
+#ss-overlay[data-state="success"] .ss-status {
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(52, 211, 153, 0.2);
+}
+
+#ss-overlay[data-state="error"] .ss-status {
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(248, 113, 113, 0.2);
 }
 
 #ss-overlay .ss-track {
+  box-sizing: border-box;
   width: 100%;
   height: 6px;
+  margin: 0;
   overflow: hidden;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #263448;
 }
 
 #ss-overlay .ss-fill {
   width: 0%;
   height: 100%;
   border-radius: 8px;
-  background: linear-gradient(90deg, #0c7d59, #45d6a4);
-  box-shadow: 0 0 10px rgba(69, 214, 164, 0.55);
-  transition: width 0.2s ease;
+  background: #45d6a4;
 }
 
 #ss-overlay .ss-track.ss-indeterminate .ss-fill {
@@ -130,30 +184,46 @@
 }
 
 #ss-overlay .ss-actions {
-  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
 }
 
 #ss-overlay .ss-cancel {
+  box-sizing: border-box;
   width: 100%;
-  padding: 10px;
-  border: 1px solid rgba(158, 184, 214, 0.32);
-  border-radius: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #526176;
+  border-radius: 8px;
   background: transparent;
-  color: #a5b4c8;
-  font-size: 12.5px;
+  color: #cbd5e1;
+  font: inherit;
   font-weight: 600;
+  text-align: center;
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
   cursor: pointer;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
-#ss-overlay .ss-cancel:hover {
-  background: rgba(158, 184, 214, 0.14);
+#ss-overlay .ss-cancel:hover:not(:disabled) {
+  background: #1b293b;
   color: #eef4fb;
+  border-color: #718198;
+}
+
+#ss-overlay .ss-cancel:disabled {
+  cursor: default;
+  opacity: 0.6;
 }
 
 #ss-overlay .ss-cancel:focus-visible {
-  outline: 2px solid #a9d6ff;
-  outline-offset: 2px;
+  outline: 2px solid #a7f3d0;
+  outline-offset: 3px;
 }
 
 @media print {
@@ -168,11 +238,36 @@
     animation: none;
     transition: none;
   }
-  .ss-dl-button {
+  .ss-dl-button,
+  #ss-overlay .ss-cancel {
     transition: none;
   }
-  .ss-dl-button:hover,
-  .ss-dl-button:active {
-    transform: none;
+}
+
+@media (forced-colors: active) {
+  .ss-dl-button,
+  #ss-overlay .ss-card,
+  #ss-overlay .ss-cancel {
+    border-color: ButtonText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+  }
+  #ss-overlay .ss-brand,
+  #ss-overlay .ss-title,
+  #ss-overlay .ss-status {
+    color: CanvasText;
+  }
+  #ss-overlay .ss-track {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+  #ss-overlay .ss-fill {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+  .ss-dl-button:focus-visible,
+  #ss-overlay .ss-cancel:focus-visible {
+    outline-color: Highlight;
   }
 }

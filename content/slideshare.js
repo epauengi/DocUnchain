@@ -267,19 +267,23 @@
   }
 
   function setProgress(percent) {
-    if (!overlay) return;
+    if (!overlay || overlayState === 'error' || overlayState === 'cancelled') return;
     const track = overlay.querySelector('.ss-track');
     const fill = overlay.querySelector('.ss-fill');
     if (!track || !fill) return;
     if (percent == null) {
+      track.hidden = false;
       track.classList.add('ss-indeterminate');
+      track.setAttribute('aria-busy', 'true');
       track.removeAttribute('aria-valuenow');
       track.setAttribute('aria-valuetext', 'Đang xử lý');
       fill.style.width = '';
       return;
     }
     const value = Math.max(0, Math.min(100, Math.round(percent)));
+    track.hidden = false;
     track.classList.remove('ss-indeterminate');
+    track.setAttribute('aria-busy', value < 100 ? 'true' : 'false');
     track.setAttribute('aria-valuenow', String(value));
     track.setAttribute('aria-valuetext', value + '% hoàn thành');
     fill.style.width = value + '%';
@@ -289,10 +293,29 @@
     if (!overlay) return;
     clearOverlayCloseTimer();
     overlayState = nextState;
+    overlay.setAttribute('data-state', nextState);
     if (text) setStatus(text);
+    const track = overlay.querySelector('.ss-track');
+    const fill = overlay.querySelector('.ss-fill');
+    if (track) {
+      if (nextState === 'error' || nextState === 'cancelled') {
+        track.hidden = true;
+        track.classList.remove('ss-indeterminate');
+        track.removeAttribute('aria-busy');
+        track.removeAttribute('aria-valuenow');
+        track.setAttribute('aria-valuetext', 'Đang xử lý');
+        if (fill) fill.style.width = '';
+      } else if (nextState === 'success') {
+        track.hidden = false;
+        track.classList.remove('ss-indeterminate');
+        track.setAttribute('aria-busy', 'false');
+      } else {
+        track.hidden = false;
+      }
+    }
     const action = overlay.querySelector('.ss-cancel');
     if (!action) return;
-    const terminal = nextState === 'success' || nextState === 'error';
+    const terminal = nextState === 'success' || nextState === 'error' || nextState === 'cancelled';
     action.disabled = nextState === 'cancelling' || nextState === 'saving';
     action.textContent = terminal ? 'Đóng' : 'Hủy';
     action.setAttribute('aria-label', terminal ? 'Đóng hộp thoại xuất tài liệu' : 'Hủy xuất tài liệu');
@@ -300,7 +323,7 @@
 
   function requestOverlayAction() {
     if (!overlay) return;
-    if (overlayState === 'success' || overlayState === 'error') {
+    if (overlayState === 'success' || overlayState === 'error' || overlayState === 'cancelled') {
       closeOverlay();
     } else if (overlayState === 'running') {
       cancelled = true;
@@ -312,14 +335,16 @@
     closeOverlay();
     overlay = document.createElement('dialog');
     overlay.id = 'ss-overlay';
+    overlay.lang = 'vi';
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-labelledby', 'ss-overlay-title');
     overlay.setAttribute('aria-describedby', 'ss-overlay-status');
     overlay.innerHTML = `
       <div class="ss-card">
-        <div class="ss-brand" id="ss-overlay-title">DocUnchain</div>
+        <div class="ss-brand" aria-hidden="true">DocUnchain</div>
+        <h2 class="ss-title" id="ss-overlay-title">Xuất tài liệu · SlideShare</h2>
         <div class="ss-status" id="ss-overlay-status" role="status" aria-live="polite" aria-atomic="true"></div>
-        <div class="ss-track ss-indeterminate" role="progressbar" aria-label="Tiến độ xuất tài liệu" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Đang xử lý"><div class="ss-fill"></div></div>
+        <div class="ss-track ss-indeterminate" role="progressbar" aria-label="Tiến độ xuất tài liệu" aria-busy="true" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Đang xử lý"><div class="ss-fill"></div></div>
         <div class="ss-actions"><button type="button" class="ss-cancel">Hủy</button></div>
       </div>`;
     overlay.querySelector('.ss-cancel').addEventListener('click', requestOverlayAction);
@@ -334,7 +359,6 @@
 
   function fail(message) {
     setOverlayState('error', message);
-    setProgress(null);
   }
 
   async function collectPages(meta) {

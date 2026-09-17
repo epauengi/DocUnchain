@@ -770,21 +770,31 @@
     style.id = 'sh-dl-style';
     /* sync with popup.html :root */
     style.textContent =
-      '#sh-dl-overlay{position:fixed;inset:0;z-index:2147483647;background:#0a111d;overflow:auto;color:#eef4fb;}' +
-      '#sh-dl-overlay .sh-dl-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;' +
-      'justify-content:space-between;gap:12px;background:#04070d;color:#eef4fb;padding:10px 20px;' +
-      "border-bottom:1px solid rgba(158,184,214,.14);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}" +
-      '#sh-dl-overlay .sh-dl-bar .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+      '#sh-dl-overlay{position:fixed;inset:0;z-index:2147483647;background:#0a111d;overflow:auto;color:#eef4fb;color-scheme:dark;}' +
+      '#sh-dl-overlay .sh-dl-bar{position:sticky;left:0;top:0;z-index:5;display:flex;align-items:center;flex-wrap:wrap;' +
+      'justify-content:space-between;gap:16px;background:#04070d;color:#eef4fb;padding:16px 24px;box-sizing:border-box;' +
+      "border-bottom:1px solid rgba(158,184,214,.32);font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}" +
+      '#sh-dl-overlay .sh-dl-heading{flex:1;min-width:0;}' +
+      '#sh-dl-overlay .sh-dl-brand{color:#8ab4f8;font-size:13px;font-weight:600;margin-bottom:4px;}' +
+      '#sh-dl-overlay .sh-dl-bar .t{margin:0;font-family:inherit;font-size:16px;line-height:1.5;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+      '#sh-dl-overlay .sh-dl-status{color:#cbd5e1;font-size:13px;overflow-wrap:anywhere;}' +
+      '#sh-dl-overlay[data-state="error"] .sh-dl-status{color:#ffa1a1;}' +
+      '#sh-dl-overlay[data-state="success"] .sh-dl-status{color:#74e0b8;}' +
       '#sh-dl-overlay .sh-dl-bar .actions{display:flex;gap:8px;flex-shrink:0;}' +
-      '#sh-dl-overlay .sh-dl-bar button{border:1px solid rgba(158,184,214,.32);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;}' +
-      '#sh-dl-overlay .sh-dl-bar button:focus-visible{outline:2px solid #a9d6ff;outline-offset:2px;}' +
+      '#sh-dl-overlay .sh-dl-bar button{box-sizing:border-box;min-height:44px;border:1px solid rgba(158,184,214,.48);border-radius:10px;padding:10px 16px;font:600 13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;cursor:pointer;transition:background-color 150ms ease,border-color 150ms ease;}' +
+      '#sh-dl-overlay .sh-dl-bar button:focus-visible,#sh-dl-overlay .t:focus-visible{outline:2px solid #a9d6ff;outline-offset:2px;}' +
       '#sh-dl-overlay .sh-dl-bar button:disabled{opacity:.52;cursor:default;}' +
-      '#sh-dl-overlay .sh-dl-print{background:linear-gradient(180deg,#2b83ea,#1668d6);color:#fff;border-color:rgba(140,196,255,.55);}' +
-      '#sh-dl-overlay .sh-dl-close{background:rgba(255,255,255,.06);color:#a5b4c8;}' +
+      '#sh-dl-overlay .sh-dl-print{background:#1559b7;color:#fff;border-color:#8ab4f8;}' +
+      '#sh-dl-overlay .sh-dl-print:hover:not(:disabled){background:#124fa5;}' +
+      '#sh-dl-overlay .sh-dl-close{background:rgba(255,255,255,.06);color:#cbd5e1;}' +
+      '#sh-dl-overlay .sh-dl-close:hover{background:rgba(158,184,214,.14);border-color:#94a3b8;}' +
       '#sh-dl-overlay .sh-dl-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-      'gap:16px;height:78vh;color:#eef4fb;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}' +
-      '#sh-dl-overlay .sh-dl-loading .bar{width:320px;height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden;}' +
-      '#sh-dl-overlay .sh-dl-loading .fill{height:100%;width:0;background:#1f7ae0;transition:width .2s;}' +
+      'gap:16px;min-height:60dvh;padding:24px;box-sizing:border-box;text-align:center;color:#eef4fb;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}' +
+      '#sh-dl-overlay .sh-dl-loading .bar{width:min(320px,100%);height:6px;background:#253449;border-radius:8px;overflow:hidden;}' +
+      '#sh-dl-overlay .sh-dl-loading .fill{height:100%;width:0;background:#8ab4f8;}' +
+      '#sh-dl-overlay .sh-dl-sub,#sh-dl-overlay .sh-dl-hint{font-size:13px;color:#cbd5e1;font-variant-numeric:tabular-nums;}' +
+      '#sh-dl-overlay .sh-dl-hint{max-width:36ch;}' +
+      '@media(max-width:600px){#sh-dl-overlay .sh-dl-bar{padding:16px;gap:12px;}#sh-dl-overlay .sh-dl-heading{flex-basis:100%;}#sh-dl-overlay .sh-dl-bar .actions{width:100%;}#sh-dl-overlay .sh-dl-bar button{flex:1;}}' +
       '#sh-dl-overlay .sh-dl-pages .p2hv{margin:0 auto;}' +
       '#sh-dl-overlay .sh-dl-pages .pf{margin:12px auto !important;background:#fff !important;' +
       'box-shadow:0 2px 8px rgba(0,0,0,.4);display:block !important;filter:none !important;opacity:1 !important;}' +
@@ -808,27 +818,55 @@
   function createOverlay(title) {
     const overlay = document.createElement('div');
     overlay.id = 'sh-dl-overlay';
+    overlay.lang = 'vi';
+    overlay.dataset.state = 'running';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'sh-dl-title');
+    const opener = document.activeElement;
+    const inertSiblings = new Map();
+    const observer = new MutationObserver(() => {
+      if (!overlay.isConnected) { close(); return; }
+      makeBackgroundInert();
+    });
     const bar = document.createElement('div');
     bar.className = 'sh-dl-bar';
-    const titleEl = document.createElement('div');
+    const heading = document.createElement('div');
+    heading.className = 'sh-dl-heading';
+    const brand = document.createElement('div');
+    brand.className = 'sh-dl-brand';
+    brand.textContent = 'DocUnchain · Studocu';
+    const titleEl = document.createElement('h2');
+    titleEl.id = 'sh-dl-title';
     titleEl.className = 't';
+    titleEl.tabIndex = -1;
     titleEl.textContent = title;
+    titleEl.title = title;
+    const status = document.createElement('div');
+    status.className = 'sh-dl-status';
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-live', 'polite');
+    status.setAttribute('aria-atomic', 'true');
+    status.textContent = 'Đang chuẩn bị bản xem trước';
+    heading.append(brand, titleEl, status);
     const actions = document.createElement('div');
     actions.className = 'actions';
     const printBtn = document.createElement('button');
     printBtn.type = 'button';
     printBtn.className = 'sh-dl-print';
     printBtn.textContent = 'In / Lưu PDF';
+    printBtn.setAttribute('aria-label', 'In hoặc lưu tài liệu dưới dạng PDF');
     printBtn.disabled = true;
     printBtn.addEventListener('click', () => window.print());
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'sh-dl-close';
     closeBtn.textContent = 'Đóng';
-    closeBtn.addEventListener('click', () => overlay.remove());
+    closeBtn.setAttribute('aria-label', 'Đóng bản xem trước xuất PDF');
+    closeBtn.addEventListener('click', close);
     actions.appendChild(printBtn);
     actions.appendChild(closeBtn);
-    bar.appendChild(titleEl);
+    bar.appendChild(heading);
     bar.appendChild(actions);
 
     const loading = document.createElement('div');
@@ -837,32 +875,127 @@
     msg.textContent = 'Đang tải toàn bộ trang…';
     const barWrap = document.createElement('div');
     barWrap.className = 'bar';
+    barWrap.setAttribute('role', 'progressbar');
+    barWrap.setAttribute('aria-label', 'Tiến độ tải trang tài liệu');
+    barWrap.setAttribute('aria-valuemin', '0');
+    barWrap.setAttribute('aria-valuemax', '100');
+    barWrap.setAttribute('aria-valuenow', '0');
+    barWrap.setAttribute('aria-valuetext', '0% hoàn thành');
     const fill = document.createElement('div');
     fill.className = 'fill';
     barWrap.appendChild(fill);
     const sub = document.createElement('div');
-    sub.style.cssText = 'font-size:13px;opacity:.7;';
-    loading.appendChild(msg);
-    loading.appendChild(barWrap);
-    loading.appendChild(sub);
+    sub.className = 'sh-dl-sub';
+    const hint = document.createElement('div');
+    hint.className = 'sh-dl-hint';
+    hint.textContent = 'Đóng bản xem trước sẽ không hủy tiến trình xuất tài liệu.';
+    loading.append(msg, barWrap, sub, hint);
 
     const pages = document.createElement('div');
     pages.className = 'sh-dl-pages';
 
+    function makeBackgroundInert() {
+      if (!overlay.isConnected) return;
+      Array.from(document.body.children).forEach(el => {
+        if (el === overlay || el.contains(overlay)) return;
+        if (!inertSiblings.has(el)) inertSiblings.set(el, el.inert);
+        el.inert = true;
+      });
+    }
+
+    function restoreBackground() {
+      observer.disconnect();
+      inertSiblings.forEach((prevInert, el) => {
+        if (el && el.isConnected) el.inert = prevInert;
+      });
+      inertSiblings.clear();
+      document.removeEventListener('keydown', handleKeydown, true);
+    }
+
+    function handleKeydown(event) {
+      if (!overlay.isConnected) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusables = Array.from(overlay.querySelectorAll('button:not(:disabled), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+        .filter(el => el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0);
+      if (!focusables.length) {
+        event.preventDefault();
+        titleEl.focus({ preventScroll: true });
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    function setProgress(percent, detail) {
+      const p = Math.max(0, Math.min(100, Math.round(percent || 0)));
+      barWrap.setAttribute('aria-valuenow', String(p));
+      barWrap.setAttribute('aria-valuetext', `${p}% hoàn thành`);
+      fill.style.width = `${p}%`;
+      if (detail) {
+        sub.textContent = detail;
+        status.textContent = detail;
+      }
+    }
+
+    function setState(nextState, message) {
+      overlay.dataset.state = nextState;
+      if (message) {
+        status.textContent = message;
+        if (nextState === 'error') {
+          msg.textContent = message;
+          barWrap.style.display = 'none';
+        }
+      }
+    }
+
+    function close() {
+      restoreBackground();
+      overlay.remove();
+      if (opener && typeof opener.focus === 'function' && opener.isConnected) {
+        try { opener.focus({ preventScroll: true }); } catch (_) {}
+      }
+    }
+
+    function mount() {
+      document.body.appendChild(overlay);
+      makeBackgroundInert();
+      observer.observe(document.body, { childList: true });
+      document.addEventListener('keydown', handleKeydown, true);
+      titleEl.focus({ preventScroll: true });
+    }
+
     overlay.appendChild(bar);
     overlay.appendChild(loading);
     overlay.appendChild(pages);
-    return { overlay, fill, sub, loading, pages, printBtn, msg };
+    return {
+      overlay, fill, sub, loading, pages, printBtn, closeBtn, msg,
+      status, titleEl, mount, close, setProgress, setState
+    };
   }
 
   function generatePDF() {
     const title = getTitle();
     injectOverlayStyles();
     const ui = createOverlay(title);
-    document.body.appendChild(ui.overlay);
+    ui.mount();
     if (!document.querySelector('.p2hv') || document.querySelectorAll('.pf').length === 0) {
       ui.msg.textContent = 'Không tìm thấy trang tài liệu.';
       ui.sub.textContent = 'Hãy cuộn tài liệu rồi thử lại.';
+      ui.status.textContent = 'Không tìm thấy trang tài liệu. Hãy cuộn rồi thử lại.';
+      ui.overlay.dataset.state = 'error';
       ui.fill.parentNode.style.display = 'none';
       return;
     }
@@ -882,14 +1015,14 @@
     }
 
     captureAllPages((done, total) => {
-      ui.fill.style.width = Math.round(done / total * 70) + '%';
-      ui.sub.textContent = 'Đang chụp trang ' + done + ' / ' + total;
+      const pct = Math.round(done / total * 70);
+      ui.setProgress(pct, 'Đang chụp trang ' + done + ' / ' + total);
     }).then(capturedPages => {
       if (!capturedPages.length) throw new Error('no pages');
       const container = assembleContainer(capturedPages, pattern);
       return embedImages(container, (done, total) => {
-        ui.fill.style.width = (70 + Math.round((total ? done / total : 1) * 30)) + '%';
-        ui.sub.textContent = 'Đang nhúng ảnh ' + done + ' / ' + total;
+        const pct = 70 + Math.round((total ? done / total : 1) * 30);
+        ui.setProgress(pct, 'Đang nhúng ảnh ' + done + ' / ' + total);
       }).then(() => container);
     }).then(container => {
       ui.loading.remove();
@@ -906,7 +1039,9 @@
         }
       }
       ui.printBtn.disabled = false;
+      ui.setState('success', 'Bản xem trước đã sẵn sàng. Bạn có thể in hoặc lưu PDF.');
     }).catch(() => {
+      ui.setState('error', 'Không thể tạo tài liệu. Hãy tải lại trang và thử lại.');
       ui.sub.textContent = 'Không thể tạo tài liệu. Hãy tải lại trang và thử lại.';
     });
   }
