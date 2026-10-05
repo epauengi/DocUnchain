@@ -790,8 +790,8 @@
       '#sh-dl-overlay .sh-dl-close:hover{background:rgba(158,184,214,.14);border-color:#94a3b8;}' +
       '#sh-dl-overlay .sh-dl-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;' +
       'gap:16px;min-height:60dvh;padding:24px;box-sizing:border-box;text-align:center;color:#eef4fb;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}' +
-      '#sh-dl-overlay .sh-dl-loading .bar{width:min(320px,100%);height:6px;background:#253449;border-radius:8px;overflow:hidden;}' +
-      '#sh-dl-overlay .sh-dl-loading .fill{height:100%;width:0;background:#8ab4f8;}' +
+      '#sh-dl-overlay .sh-dl-loading .bar{width:min(320px,100%);height:6px;background:#263448;border-radius:8px;overflow:hidden;}' +
+      '#sh-dl-overlay .sh-dl-loading .fill{height:100%;width:0;background:#5db2ff;}' +
       '#sh-dl-overlay .sh-dl-sub,#sh-dl-overlay .sh-dl-hint{font-size:13px;color:#cbd5e1;font-variant-numeric:tabular-nums;}' +
       '#sh-dl-overlay .sh-dl-hint{max-width:36ch;}' +
       '@media(max-width:600px){#sh-dl-overlay .sh-dl-bar{padding:16px;gap:12px;}#sh-dl-overlay .sh-dl-heading{flex-basis:100%;}#sh-dl-overlay .sh-dl-bar .actions{width:100%;}#sh-dl-overlay .sh-dl-bar button{flex:1;}}' +

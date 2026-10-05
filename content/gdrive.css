@@ -137,6 +137,7 @@
 }
 
 #gd-overlay[data-state="success"] .gd-status,
+#gd-overlay[data-state="partial"] .gd-status,
 #gd-overlay[data-state="error"] .gd-status {
   padding: 8px 12px;
   border-radius: 8px;
@@ -148,6 +149,16 @@
   color: #a7f3d0;
   background: rgba(16, 185, 129, 0.08);
   border-color: rgba(52, 211, 153, 0.2);
+}
+
+#gd-overlay[data-state="partial"] .gd-status {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+#gd-overlay[data-state="partial"] .gd-fill {
+  background: #f59e0b;
 }
 
 #gd-overlay[data-state="error"] .gd-status {

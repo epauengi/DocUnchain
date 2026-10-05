@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnJunk = document.getElementById('btn-junk');
   const junkWorkload = document.getElementById('junk-workload');
   const junkStatus = document.getElementById('junk-status');
+  const actionStatus = document.getElementById('action-status');
 
   let feedbackSending = false;
   let feedbackCloseTimer = null;
@@ -67,10 +68,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function showActionStatus(message, type = '') {
+    if (!actionStatus) return;
+    if (!message) {
+      actionStatus.textContent = '';
+      actionStatus.className = 'action-status';
+      return;
+    }
+    actionStatus.textContent = message;
+    actionStatus.className = 'action-status' + (type ? ` ${type}` : '');
+  }
+
   function showSite(site) {
     const tone = site === 'drive-folder' ? 'none' : (site || 'none');
     siteDot.className = 'site-dot ' + tone;
     siteLabel.className = 'site-label' + (tone !== 'none' ? ' ' + tone : '');
+    showActionStatus('');
     btnStudocu.classList.add('hidden');
     btnReset.classList.add('hidden');
     btnScribd.classList.add('hidden');
@@ -81,21 +94,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const junkDetails = document.getElementById('junk-details');
 
     if (site === 'studocu') {
-      siteLabel.textContent = 'Studocu đã sẵn sàng';
+      siteLabel.textContent = 'Đã nhận diện Studocu · Sẵn sàng xuất';
       btnStudocu.classList.remove('hidden');
       btnReset.classList.remove('hidden');
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'scribd') {
-      siteLabel.textContent = 'Scribd đã sẵn sàng';
+      siteLabel.textContent = 'Đã nhận diện Scribd · Sẵn sàng xuất';
       btnScribd.classList.remove('hidden');
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'slideshare') {
-      siteLabel.textContent = 'SlideShare đã sẵn sàng';
+      siteLabel.textContent = 'Đã nhận diện SlideShare · Sẵn sàng xuất';
       btnSlideshare.classList.remove('hidden');
       btnSlidesharePptx.classList.remove('hidden');
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'drive') {
-      siteLabel.textContent = 'Google Drive đã sẵn sàng';
+      siteLabel.textContent = 'Đã nhận diện Google Drive · Sẵn sàng xuất';
       btnDrive.classList.remove('hidden');
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'drive-folder') {
@@ -356,25 +369,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (downloadBusy) return;
     const tab = await getActiveTab();
     if (!tab || !Number.isInteger(tab.id)) {
-      siteLabel.textContent = 'Không đọc được tab hiện tại.';
+      showActionStatus('Không đọc được tab hiện tại.', 'error');
       return;
     }
     setDownloadBusy(true);
-    siteLabel.textContent = pendingText;
+    showActionStatus(pendingText, 'info');
     chrome.tabs.sendMessage(tab.id, { action }, (response) => {
       const err = chrome.runtime.lastError;
       if (err) {
         setDownloadBusy(false);
-        siteLabel.textContent = 'Không gửi được lệnh. Tải lại trang rồi thử lại.';
+        showActionStatus('Không gửi được lệnh. Hãy tải lại trang web rồi thử lại.', 'error');
         return;
       }
       if (!response || response.status !== 'started') {
         setDownloadBusy(false);
-        siteLabel.textContent = 'Không thể bắt đầu xuất. Tải lại trang rồi thử lại.';
+        showActionStatus('Không thể bắt đầu xuất. Hãy tải lại trang web rồi thử lại.', 'error');
         return;
       }
-      siteLabel.textContent = doneText;
-      setTimeout(() => window.close(), 300);
+      showActionStatus(doneText, 'success');
+      setTimeout(() => window.close(), 450);
     });
   }
 
@@ -423,20 +436,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const tab = await getActiveTab();
     if (!tab) {
       setResetLabel(RESET_LABEL);
-      siteLabel.textContent = 'Không đọc được tab hiện tại.';
+      showActionStatus('Không đọc được tab hiện tại.', 'error');
       return;
     }
     setDownloadBusy(true);
-    siteLabel.textContent = 'Đang xoá cookie và tải lại trang...';
+    showActionStatus('Đang xoá cookie và tải lại trang...', 'info');
     try {
       const resp = await chrome.runtime.sendMessage({ action: 'CLEAR_COOKIES' });
       if (!resp || !resp.ok) {
         setDownloadBusy(false);
         setResetLabel(RESET_LABEL);
-        siteLabel.textContent = 'Lỗi: ' + (resp && resp.error ? resp.error : 'Không thể xoá cookie.');
+        showActionStatus('Lỗi: ' + (resp && resp.error ? resp.error : 'Không thể xoá cookie.'), 'error');
         return;
       }
-      siteLabel.textContent = `Đã xoá ${resp.count} cookies. Đang tải lại...`;
+      showActionStatus(`Đã xoá ${resp.count} cookies. Đang tải lại...`, 'success');
       setTimeout(() => {
         chrome.tabs.reload(tab.id);
         window.close();
@@ -444,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       setDownloadBusy(false);
       setResetLabel(RESET_LABEL);
-      siteLabel.textContent = 'Lỗi: ' + err.message;
+      showActionStatus('Lỗi: ' + err.message, 'error');
     }
   });
 

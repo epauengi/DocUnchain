@@ -760,7 +760,7 @@
     }
     const action = overlay.querySelector('.gd-cancel');
     if (!action) return;
-    const terminal = nextState === 'success' || nextState === 'error' || nextState === 'cancelled';
+    const terminal = nextState === 'success' || nextState === 'partial' || nextState === 'error' || nextState === 'cancelled';
     action.disabled = nextState === 'cancelling' || nextState === 'saving';
     action.textContent = terminal ? 'Đóng' : 'Hủy';
     action.setAttribute('aria-label', terminal ? 'Đóng hộp thoại xuất PDF' : 'Hủy xuất PDF');
@@ -768,7 +768,7 @@
 
   function requestOverlayAction() {
     if (!overlay) return;
-    if (overlayState === 'success' || overlayState === 'error' || overlayState === 'cancelled') {
+    if (overlayState === 'success' || overlayState === 'partial' || overlayState === 'error' || overlayState === 'cancelled') {
       closeOverlay();
     } else if (overlayState === 'running') {
       cancelled = true;
@@ -869,13 +869,17 @@
       await delay(60); // cho browser kịp paint
 
       await pdf.save(getFilename(), { returnPromise: true });
-      const shortfall = exp > 0 && pages.length < exp
-        ? ` (Drive báo ${exp} trang — hãy thử tải lại nếu còn thiếu)`
-        : '';
-      setOverlayState('success', `Hoàn tất. Đã lưu ${pages.length} trang.${shortfall}`);
-      setProgress(100);
-      log('Lưu PDF thành công:', pages.length, 'trang.', exp ? `(UI: ${exp})` : '');
-      scheduleOverlayClose();
+      const isPartial = exp > 0 && pages.length < exp;
+      if (isPartial) {
+        setOverlayState('partial', `Đã lưu ${pages.length}/${exp} trang (Drive báo ${exp} trang). Hãy kiểm tra file và tải lại nếu cần.`);
+        setProgress(100);
+        log('Lưu PDF một phần:', pages.length, '/', exp, 'trang.');
+      } else {
+        setOverlayState('success', `Hoàn tất. Đã lưu ${pages.length} trang.`);
+        setProgress(100);
+        log('Lưu PDF thành công:', pages.length, 'trang.', exp ? `(UI: ${exp})` : '');
+        scheduleOverlayClose();
+      }
     } catch (e) {
       const msg = e && e.message === 'no-pages'
         ? 'Không tìm thấy trang nào. Hãy mở xem trước tài liệu rồi thử lại.'

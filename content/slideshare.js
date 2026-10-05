@@ -315,7 +315,7 @@
     }
     const action = overlay.querySelector('.ss-cancel');
     if (!action) return;
-    const terminal = nextState === 'success' || nextState === 'error' || nextState === 'cancelled';
+    const terminal = nextState === 'success' || nextState === 'partial' || nextState === 'error' || nextState === 'cancelled';
     action.disabled = nextState === 'cancelling' || nextState === 'saving';
     action.textContent = terminal ? 'Đóng' : 'Hủy';
     action.setAttribute('aria-label', terminal ? 'Đóng hộp thoại xuất tài liệu' : 'Hủy xuất tài liệu');
@@ -323,7 +323,7 @@
 
   function requestOverlayAction() {
     if (!overlay) return;
-    if (overlayState === 'success' || overlayState === 'error' || overlayState === 'cancelled') {
+    if (overlayState === 'success' || overlayState === 'partial' || overlayState === 'error' || overlayState === 'cancelled') {
       closeOverlay();
     } else if (overlayState === 'running') {
       cancelled = true;
@@ -422,9 +422,14 @@
       setProgress(98);
       await delay(40);
       await pdf.save(getFilename(meta.title), { returnPromise: true });
-      setOverlayState('success', 'Hoàn tất. Đã lưu ' + ok.length + ' slide.' + (miss ? ' Thiếu ' + miss + ' slide.' : ''));
-      setProgress(100);
-      scheduleOverlayClose();
+      if (miss > 0) {
+        setOverlayState('partial', 'Đã lưu PDF gồm ' + ok.length + ' slide (thiếu ' + miss + ' slide). Hãy kiểm tra file và tải lại nếu cần.');
+        setProgress(100);
+      } else {
+        setOverlayState('success', 'Hoàn tất. Đã lưu ' + ok.length + ' slide.');
+        setProgress(100);
+        scheduleOverlayClose();
+      }
     } catch (e) {
       const msg = e && e.message === 'no-slides'
         ? 'Không tải được ảnh slide. Tải lại trang rồi thử lại.'
@@ -494,9 +499,14 @@
       setOverlayState('saving', 'Đang lưu PPTX. Không thể hủy khi trình duyệt đang lưu.');
       setProgress(98);
       await pptx.writeFile({ fileName: getPptxFilename(meta.title) });
-      setOverlayState('success', 'Hoàn tất. Đã lưu PPTX gồm ' + ok.length + ' slide.' + (miss ? ' Thiếu ' + miss + ' slide.' : ''));
-      setProgress(100);
-      scheduleOverlayClose();
+      if (miss > 0) {
+        setOverlayState('partial', 'Đã lưu PPTX gồm ' + ok.length + ' slide (thiếu ' + miss + ' slide). Hãy kiểm tra file và tải lại nếu cần.');
+        setProgress(100);
+      } else {
+        setOverlayState('success', 'Hoàn tất. Đã lưu PPTX gồm ' + ok.length + ' slide.');
+        setProgress(100);
+        scheduleOverlayClose();
+      }
     } catch (e) {
       const msg = e && e.message === 'no-slides'
         ? 'Không tải được ảnh slide. Tải lại trang rồi thử lại.'

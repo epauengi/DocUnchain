@@ -30,9 +30,9 @@
     html { background: var(--bg0); }
 
     body {
-      width: 320px;
+      width: 348px;
       min-height: 100px;
-      padding: 14px;
+      padding: 16px;
       overflow-x: hidden;
       color: var(--text);
       color-scheme: dark;
@@ -40,9 +40,7 @@
       -webkit-font-smoothing: antialiased;
       user-select: none;
       background:
-        radial-gradient(120% 70% at 85% -25%, rgba(64, 138, 255, 0.17), transparent 55%),
-        radial-gradient(110% 65% at -15% 108%, rgba(28, 205, 148, 0.11), transparent 55%),
-        radial-gradient(90% 55% at 50% 118%, rgba(64, 138, 255, 0.07), transparent 60%),
+        radial-gradient(120% 80% at 50% -20%, rgba(93, 178, 255, 0.12), transparent 70%),
         linear-gradient(180deg, var(--bg1), var(--bg0));
     }
 
@@ -89,15 +87,11 @@
       height: 32px;
       flex: 0 0 auto;
       place-items: center;
-      border: 1px solid rgba(139, 194, 255, 0.55);
+      border: 1px solid rgba(139, 194, 255, 0.45);
       border-radius: 9px;
-      background:
-        linear-gradient(160deg, rgba(93, 178, 255, 0.32), rgba(93, 178, 255, 0.05) 55%, rgba(69, 214, 164, 0.18)),
-        var(--glass-deep);
+      background: rgba(93, 178, 255, 0.12);
       color: #cfe7ff;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.22),
-        0 6px 18px -8px rgba(47, 130, 232, 0.75);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 
     .brand-icon svg { width: 16px; height: 16px; fill: currentColor; }
@@ -165,27 +159,18 @@
 
     .site-status:has(.site-dot.studocu) {
       border-color: rgba(93, 178, 255, 0.45);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 20px -4px rgba(47, 130, 232, 0.45),
-        0 12px 34px -14px rgba(47, 130, 232, 0.55);
+      box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.7);
     }
 
     .site-status:has(.site-dot.scribd),
     .site-status:has(.site-dot.slideshare) {
       border-color: rgba(69, 214, 164, 0.45);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 20px -4px rgba(20, 168, 122, 0.4),
-        0 12px 34px -14px rgba(20, 168, 122, 0.5);
+      box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.7);
     }
 
     .site-status:has(.site-dot.drive) {
       border-color: rgba(138, 180, 248, 0.45);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 0 20px -4px rgba(66, 133, 244, 0.4),
-        0 12px 34px -14px rgba(66, 133, 244, 0.5);
+      box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.7);
     }
 
     .status-kicker {
@@ -248,39 +233,62 @@
       min-width: 0;
       overflow-wrap: anywhere;
       color: var(--muted);
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 600;
       line-height: 1.4;
     }
 
     .site-label.studocu {
-      background: linear-gradient(92deg, #cde6ff, #8ec4fa);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      color: #bfe0ff;
     }
 
-    .site-label.scribd {
-      background: linear-gradient(92deg, #ccf4e3, #7fe3bd);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    .site-label.scribd,
+    .site-label.slideshare {
+      color: #93e8ca;
     }
 
     .site-label.drive {
-      background: linear-gradient(92deg, #d6e5ff, #8ab4f8);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      color: #b3cfff;
     }
 
-    .action-block { margin-top: 12px; }
+    .action-block { margin-top: 14px; }
+
+    .action-status {
+      min-height: 20px;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      line-height: 1.4;
+      display: none;
+    }
+
+    .action-status.info {
+      display: block;
+      color: #bfe0ff;
+      background: rgba(93, 178, 255, 0.1);
+      border: 1px solid rgba(93, 178, 255, 0.25);
+    }
+
+    .action-status.success {
+      display: block;
+      color: #a7f3d0;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .action-status.error {
+      display: block;
+      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+    }
 
     .action-label {
       margin: 0 1px 7px;
       color: var(--faint);
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 600;
       letter-spacing: 0.06em;
       line-height: 1;
@@ -326,7 +334,7 @@
       background: linear-gradient(180deg, #2b83ea 0%, #1668d6 100%);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.26),
-        0 12px 30px -12px rgba(43, 131, 234, 0.85);
+        0 8px 20px -8px rgba(0, 0, 0, 0.7);
     }
 
     .btn-primary.studocu:hover:not(:disabled) {
@@ -334,7 +342,7 @@
       border-color: rgba(172, 212, 255, 0.75);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        0 14px 34px -12px rgba(59, 145, 245, 0.95);
+        0 10px 24px -8px rgba(0, 0, 0, 0.8);
       transform: translateY(-1px);
     }
 
@@ -343,7 +351,7 @@
       background: linear-gradient(180deg, #16a877 0%, #0c7d59 100%);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.26),
-        0 12px 30px -12px rgba(22, 168, 119, 0.8);
+        0 8px 20px -8px rgba(0, 0, 0, 0.7);
     }
 
     .btn-primary.scribd:hover:not(:disabled) {
@@ -351,7 +359,7 @@
       border-color: rgba(150, 240, 204, 0.72);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        0 14px 34px -12px rgba(27, 187, 134, 0.9);
+        0 10px 24px -8px rgba(0, 0, 0, 0.8);
       transform: translateY(-1px);
     }
 
@@ -360,7 +368,7 @@
       background: linear-gradient(180deg, #4285f4 0%, #1967d2 100%);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.26),
-        0 12px 30px -12px rgba(66, 133, 244, 0.85);
+        0 8px 20px -8px rgba(0, 0, 0, 0.7);
     }
 
     .btn-primary.drive:hover:not(:disabled) {
@@ -368,7 +376,7 @@
       border-color: rgba(198, 219, 253, 0.75);
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        0 14px 34px -12px rgba(79, 143, 247, 0.95);
+        0 10px 24px -8px rgba(0, 0, 0, 0.8);
       transform: translateY(-1px);
     }
 
@@ -391,17 +399,19 @@
 
     .btn-secondary {
       justify-content: center;
-      min-height: 40px;
-      gap: 7px;
+      min-height: 44px;
+      gap: 8px;
       margin-top: 8px;
-      padding: 9px 12px;
+      padding: 10px 14px;
       border: 1px solid var(--stroke);
       border-radius: 10px;
       background: var(--sheen);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       color: var(--muted);
-      font-size: 11.5px;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
       font-weight: 600;
     }
 
@@ -544,17 +554,17 @@
 
     .btn-feedback {
       justify-content: center;
-      min-height: 40px;
-      gap: 7px;
-      padding: 9px 12px;
+      min-height: 44px;
+      gap: 8px;
+      padding: 10px 14px;
       border: 1px solid var(--stroke);
       border-radius: 10px;
       background: var(--sheen);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       color: var(--muted);
-      font-size: 11.5px;
-      font-weight: 700;
+      font-size: 12.5px;
+      font-weight: 600;
     }
 
     .btn-feedback svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; }
@@ -750,7 +760,7 @@
       border: 1px solid rgba(160, 208, 255, 0.65);
       background: linear-gradient(180deg, #3d90ee 0%, #1f6fd4 100%);
       color: #ffffff;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 24px -12px rgba(43, 131, 234, 0.9);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 8px 20px -8px rgba(0, 0, 0, 0.7);
     }
     .feedback-submit:hover:not(:disabled) { filter: brightness(1.08); }
     .feedback-submit:active:not(:disabled) { transform: translateY(1px); }
@@ -837,6 +847,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         Tải PDF Google Drive
       </button>
+      <div class="action-status" id="action-status" role="status" aria-live="polite" aria-atomic="true"></div>
     </section>
 
     <section class="junk-block" aria-label="Tạo PDF mẫu">
