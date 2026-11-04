@@ -61,7 +61,48 @@ async function fetchSlideBytes(url) {
   return { ok: true, base64: toBase64(bytes), type: res.headers.get('content-type') || '' };
 }
 
+let creatingOcrDocument;
+
+async function ensureOcrDocument() {
+  const url = chrome.runtime.getURL('ocr/ocr.html');
+  const existing = typeof chrome.runtime.getContexts === 'function'
+    ? await chrome.runtime.getContexts({ contextTypes: ['OFFSCREEN_DOCUMENT'], documentUrls: [url] })
+    : (await clients.matchAll({ type: 'window', includeUncontrolled: true })).filter((client) => client.url === url);
+  if (existing.length) return;
+  if (!creatingOcrDocument) {
+    creatingOcrDocument = chrome.offscreen.createDocument({
+      url: 'ocr/ocr.html',
+      reasons: ['WORKERS'],
+      justification: 'Nhận dạng văn bản cục bộ cho PDF do người dùng yêu cầu.',
+    }).finally(() => { creatingOcrDocument = null; });
+  }
+  await creatingOcrDocument;
+}
+
+function isOcrSender(sender) {
+  if (sender.id !== chrome.runtime.id || !sender.tab || sender.frameId !== 0) return false;
+  try {
+    const url = new URL(sender.url);
+    return (url.protocol === 'https:' || url.protocol === 'http:') &&
+      ((url.hostname === 'drive.google.com' && /^\/file\/d\//.test(url.pathname)) ||
+        url.hostname === 'slideshare.net' || url.hostname.endsWith('.slideshare.net'));
+  } catch (e) {
+    return false;
+  }
+}
+
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+  if (!req || typeof req !== 'object') return false;
+  if (req.action === 'ENSURE_OCR') {
+    if (!isOcrSender(sender)) {
+      sendResponse({ ok: false, error: 'Nguồn OCR không hợp lệ.' });
+      return false;
+    }
+    ensureOcrDocument()
+      .then(() => sendResponse({ ok: true }))
+      .catch(() => sendResponse({ ok: false, error: 'Không khởi tạo được OCR cục bộ.' }));
+    return true;
+  }
   if (req.action === 'CLEAR_COOKIES') {
     clearStudocuCookies()
       .then(count => sendResponse({ ok: true, count }))

@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSlideshare = document.getElementById('btn-slideshare');
   const btnSlidesharePptx = document.getElementById('btn-slideshare-pptx');
   const btnReset = document.getElementById('btn-reset');
+  const ocrOption = document.getElementById('ocr-option');
+  const ocrSearchable = document.getElementById('ocr-searchable');
   const junkHint = document.getElementById('junk-hint');
   const feedbackButton = document.getElementById('btn-feedback');
   const feedbackDialog = document.getElementById('feedback-dialog');
@@ -34,6 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let resetTimer = null;
   const RESET_LABEL = 'Reset phiên Studocu';
   const RESET_CONFIRM = 'Xác nhận xóa cookie & reload?';
+
+  if (ocrSearchable) {
+    ocrSearchable.checked = false;
+  }
 
   try {
     const manifest = chrome.runtime.getManifest();
@@ -90,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnDrive.classList.add('hidden');
     btnSlideshare.classList.add('hidden');
     btnSlidesharePptx.classList.add('hidden');
+    if (ocrOption) ocrOption.classList.add('hidden');
 
     const junkDetails = document.getElementById('junk-details');
 
@@ -97,25 +104,31 @@ document.addEventListener('DOMContentLoaded', () => {
       siteLabel.textContent = 'Đã nhận diện Studocu · Sẵn sàng xuất';
       btnStudocu.classList.remove('hidden');
       btnReset.classList.remove('hidden');
+      if (ocrSearchable) ocrSearchable.checked = false;
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'scribd') {
       siteLabel.textContent = 'Đã nhận diện Scribd · Sẵn sàng xuất';
       btnScribd.classList.remove('hidden');
+      if (ocrSearchable) ocrSearchable.checked = false;
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'slideshare') {
       siteLabel.textContent = 'Đã nhận diện SlideShare · Sẵn sàng xuất';
       btnSlideshare.classList.remove('hidden');
       btnSlidesharePptx.classList.remove('hidden');
+      if (ocrOption) ocrOption.classList.remove('hidden');
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'drive') {
       siteLabel.textContent = 'Đã nhận diện Google Drive · Sẵn sàng xuất';
       btnDrive.classList.remove('hidden');
+      if (ocrOption) ocrOption.classList.remove('hidden');
       if (junkDetails) junkDetails.open = false;
     } else if (site === 'drive-folder') {
       siteLabel.textContent = 'Mở xem trước file Drive (URL /file/d/...) để tải PDF';
+      if (ocrSearchable) ocrSearchable.checked = false;
       if (junkDetails) junkDetails.open = false;
     } else {
       siteLabel.textContent = 'Mở tài liệu Studocu, Scribd, Drive hoặc SlideShare để sử dụng';
+      if (ocrSearchable) ocrSearchable.checked = false;
       if (junkDetails) junkDetails.open = false;
     }
 
@@ -363,9 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnSlideshare.disabled = busy;
     btnSlidesharePptx.disabled = busy;
     btnReset.disabled = busy;
+    if (ocrSearchable) ocrSearchable.disabled = busy;
+    if (ocrOption) ocrOption.classList.toggle('disabled', busy);
   }
 
-  async function sendDownloadAction(action, pendingText, doneText) {
+  async function sendDownloadAction(action, pendingText, doneText, payload = {}) {
     if (downloadBusy) return;
     const tab = await getActiveTab();
     if (!tab || !Number.isInteger(tab.id)) {
@@ -374,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setDownloadBusy(true);
     showActionStatus(pendingText, 'info');
-    chrome.tabs.sendMessage(tab.id, { action }, (response) => {
+    chrome.tabs.sendMessage(tab.id, { action, ...payload }, (response) => {
       const err = chrome.runtime.lastError;
       if (err) {
         setDownloadBusy(false);
@@ -395,14 +410,21 @@ document.addEventListener('DOMContentLoaded', () => {
     return sendDownloadAction('START_DOWNLOAD', 'Đang gửi lệnh...', 'Đang kết xuất PDF...');
   }
 
+  // ponytail: opt-in OCR searchability in-memory; upgrade to chrome.storage sync if user wants persistent toggle
+  function startOcrDownload() {
+    return sendDownloadAction('START_DOWNLOAD', 'Đang gửi lệnh...', 'Đang kết xuất PDF...', {
+      searchable: Boolean(ocrSearchable && ocrSearchable.checked),
+    });
+  }
+
   function startSlidesharePptx() {
     return sendDownloadAction('START_PPTX_DOWNLOAD', 'Đang gửi lệnh...', 'Đang kết xuất PPTX...');
   }
 
   btnStudocu.addEventListener('click', startDownload);
   btnScribd.addEventListener('click', startDownload);
-  btnDrive.addEventListener('click', startDownload);
-  btnSlideshare.addEventListener('click', startDownload);
+  btnDrive.addEventListener('click', startOcrDownload);
+  btnSlideshare.addEventListener('click', startOcrDownload);
   btnSlidesharePptx.addEventListener('click', startSlidesharePptx);
 
   function setResetLabel(text, isArmed = false) {

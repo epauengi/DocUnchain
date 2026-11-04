@@ -62,6 +62,8 @@
 
   let running = false;
   let cancelled = false;
+  let activeOcr = null;
+  let ocrAbortController = null;
 
   const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -772,6 +774,12 @@
       closeOverlay();
     } else if (overlayState === 'running') {
       cancelled = true;
+      if (ocrAbortController) {
+        try { ocrAbortController.abort(); } catch (_) {}
+      }
+      if (activeOcr && typeof activeOcr.cancel === 'function') {
+        try { activeOcr.cancel(); } catch (_) {}
+      }
       setOverlayState('cancelling', 'Đang hủy...');
     }
   }
@@ -807,7 +815,7 @@
   }
 
   // ========== Quy trình chính ==========
-  async function run() {
+  async function run(searchable = false) {
     if (running) return;
     if (!hasPreviewContext()) {
       showOverlay();
@@ -817,6 +825,7 @@
 
     running = true;
     cancelled = false;
+    let ocr = null;
     showOverlay('Đang quét tài liệu...');
     log('Bắt đầu quy trình tải.');
 
@@ -841,14 +850,40 @@
       }
       if (!pages.length) throw new Error('no-pages');
 
-      setStatus(`Đang ghép ${pages.length} trang...`);
-      let pdf = null;
-      for (const page of pages) {
+      if (searchable) {
         if (cancelled) {
           closeOverlay();
           log('Đã hủy bởi người dùng.');
           return;
         }
+        const helper = (typeof window !== 'undefined' && window.DocUnchainSearchable) || (typeof DocUnchainSearchable !== 'undefined' ? DocUnchainSearchable : null);
+        if (!helper || typeof helper.create !== 'function') {
+          throw new Error('DocUnchainSearchable unavailable');
+        }
+        setStatus('Đang khởi tạo OCR cục bộ...');
+        setProgress(null);
+        ocrAbortController = new AbortController();
+        const inst = await helper.create({ signal: ocrAbortController.signal });
+        ocr = inst;
+        activeOcr = inst;
+        if (cancelled) {
+          closeOverlay();
+          log('Đã hủy bởi người dùng.');
+          return;
+        }
+      }
+
+      if (!ocr) {
+        setStatus(`Đang ghép ${pages.length} trang...`);
+      }
+      let pdf = null;
+      for (let i = 0; i < pages.length; i++) {
+        if (cancelled) {
+          closeOverlay();
+          log('Đã hủy bởi người dùng.');
+          return;
+        }
+        const page = pages[i];
         const orientation = page.data.width > page.data.height ? 'l' : 'p';
         if (!pdf) {
           pdf = new window.jspdf.jsPDF({
@@ -861,6 +896,15 @@
           pdf.addPage([page.data.width, page.data.height], orientation);
         }
         pdf.addImage(page.data.data, 'JPEG', 0, 0, page.data.width, page.data.height, undefined, 'FAST');
+        if (ocr) {
+          setStatus(`Đang nhận dạng văn bản ${i + 1}/${pages.length}…`);
+          await ocr.addPage(pdf, page.data);
+          if (cancelled) {
+            closeOverlay();
+            log('Đã hủy bởi người dùng.');
+            return;
+          }
+        }
       }
 
       const exp = expectedTotal();
@@ -881,12 +925,24 @@
         scheduleOverlayClose();
       }
     } catch (e) {
+      if (cancelled) {
+        closeOverlay();
+        log('Đã hủy bởi người dùng.');
+        return;
+      }
       const msg = e && e.message === 'no-pages'
         ? 'Không tìm thấy trang nào. Hãy mở xem trước tài liệu rồi thử lại.'
         : 'Lỗi khi tạo PDF: ' + ((e && e.message) || e);
       fail(msg);
       log(msg);
     } finally {
+      ocrAbortController = null;
+      activeOcr = null;
+      if (ocr) {
+        try {
+          await ocr.close();
+        } catch (_) {}
+      }
       running = false;
     }
   }
@@ -919,7 +975,7 @@
 
   chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     if (req.action === 'START_DOWNLOAD') {
-      run();
+      run(req.searchable === true);
       sendResponse({ status: 'started' });
     }
     return true;

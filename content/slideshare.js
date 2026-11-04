@@ -21,6 +21,8 @@
   let running = false;
   let cancelled = false;
   let overlay = null;
+  let activeOcr = null;
+  let ocrAbortController = null;
 
   function delay(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -327,6 +329,12 @@
       closeOverlay();
     } else if (overlayState === 'running') {
       cancelled = true;
+      if (ocrAbortController) {
+        try { ocrAbortController.abort(); } catch (_) {}
+      }
+      if (activeOcr && typeof activeOcr.cancel === 'function') {
+        try { activeOcr.cancel(); } catch (_) {}
+      }
       setOverlayState('cancelling', 'Đang hủy...');
     }
   }
@@ -374,7 +382,7 @@
     return { ok, miss: pages.length - ok.length };
   }
 
-  async function run() {
+  async function run(searchable = false) {
     if (running) return;
     const meta = parseSlideshow();
     if (!meta || !meta.urls.length) {
@@ -385,6 +393,7 @@
 
     running = true;
     cancelled = false;
+    let ocr = null;
     showOverlay('Đang nạp slide 0/' + meta.urls.length + '…');
     setProgress(0);
 
@@ -396,14 +405,38 @@
       }
       const { ok, miss } = result;
 
-      setStatus('Đang ghép ' + ok.length + ' slide...');
-      setProgress(94);
-      let pdf = null;
-      for (const page of ok) {
+      if (searchable) {
         if (cancelled) {
           closeOverlay();
           return;
         }
+        const helper = (typeof window !== 'undefined' && window.DocUnchainSearchable) || (typeof DocUnchainSearchable !== 'undefined' ? DocUnchainSearchable : null);
+        if (!helper || typeof helper.create !== 'function') {
+          throw new Error('DocUnchainSearchable unavailable');
+        }
+        setStatus('Đang khởi tạo OCR cục bộ...');
+        setProgress(null);
+        ocrAbortController = new AbortController();
+        const inst = await helper.create({ signal: ocrAbortController.signal });
+        ocr = inst;
+        activeOcr = inst;
+        if (cancelled) {
+          closeOverlay();
+          return;
+        }
+      }
+
+      if (!ocr) {
+        setStatus('Đang ghép ' + ok.length + ' slide...');
+        setProgress(94);
+      }
+      let pdf = null;
+      for (let i = 0; i < ok.length; i++) {
+        if (cancelled) {
+          closeOverlay();
+          return;
+        }
+        const page = ok[i];
         const orientation = page.width > page.height ? 'l' : 'p';
         if (!pdf) {
           pdf = new window.jspdf.jsPDF({
@@ -416,6 +449,14 @@
           pdf.addPage([page.width, page.height], orientation);
         }
         pdf.addImage(page.data, 'JPEG', 0, 0, page.width, page.height, undefined, 'FAST');
+        if (ocr) {
+          setStatus('Đang nhận dạng văn bản ' + (i + 1) + '/' + ok.length + '…');
+          await ocr.addPage(pdf, page);
+          if (cancelled) {
+            closeOverlay();
+            return;
+          }
+        }
       }
 
       setOverlayState('saving', 'Đang lưu PDF. Không thể hủy khi trình duyệt đang lưu.');
@@ -431,11 +472,22 @@
         scheduleOverlayClose();
       }
     } catch (e) {
+      if (cancelled) {
+        closeOverlay();
+        return;
+      }
       const msg = e && e.message === 'no-slides'
         ? 'Không tải được ảnh slide. Tải lại trang rồi thử lại.'
         : 'Lỗi khi tạo PDF: ' + ((e && e.message) || e);
       fail(msg);
     } finally {
+      ocrAbortController = null;
+      activeOcr = null;
+      if (ocr) {
+        try {
+          await ocr.close();
+        } catch (_) {}
+      }
       running = false;
     }
   }
@@ -538,7 +590,7 @@
 
   chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
     if (req.action === 'START_DOWNLOAD') {
-      run();
+      run(req.searchable === true);
       sendResponse({ status: 'started' });
     } else if (req.action === 'START_PPTX_DOWNLOAD') {
       runPptx();

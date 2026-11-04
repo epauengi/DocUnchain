@@ -7,8 +7,12 @@
     "activeTab",
     "scripting",
     "downloads",
-    "cookies"
+    "cookies",
+    "offscreen"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
   "host_permissions": [
     "*://*.studocu.com/*",
     "*://doc-assets.studocu.com/*",
@@ -132,7 +136,7 @@
         "*://drive.google.com/*"
       ],
       "css": ["content/gdrive.css"],
-      "js": ["lib/jspdf.umd.min.js", "content/gdrive.js"],
+      "js": ["lib/jspdf.umd.min.js", "content/searchable.js", "content/gdrive.js"],
       "run_at": "document_idle"
     },
     {
@@ -140,7 +144,7 @@
         "*://*.slideshare.net/*"
       ],
       "css": ["content/slideshare.css"],
-      "js": ["lib/jspdf.umd.min.js", "lib/jszip.min.js", "lib/pptxgen.bundle.js", "content/slideshare.js"],
+      "js": ["lib/jspdf.umd.min.js", "lib/jszip.min.js", "lib/pptxgen.bundle.js", "content/searchable.js", "content/slideshare.js"],
       "run_at": "document_idle"
     }
   ],
