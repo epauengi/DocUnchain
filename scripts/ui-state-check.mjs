@@ -23,6 +23,14 @@ const popupHtml = fs.readFileSync(path.join(ROOT, 'popup', 'popup.html'), 'utf8'
 assert.ok(popupHtml.includes('width: 348px;'), 'popup/popup.html chiều rộng phải nâng lên 348px');
 assert.ok(popupHtml.includes('id="action-status"'), 'popup/popup.html phải có action-status container');
 assert.ok(popupHtml.includes('min-height: 44px;'), 'nút phụ phải đạt 44px');
+// ponytail: CSS chưa có ngoặc nhọn trong chuỗi; dùng CSS parser nếu bổ sung.
+const popupCss = popupHtml.match(/<style>([\s\S]*?)<\/style>/)[1];
+let cssDepth = 0;
+for (const brace of popupCss.match(/[{}]/g)) {
+  cssDepth += brace === '{' ? 1 : -1;
+  assert.ok(cssDepth >= 0, 'popup CSS không được có dấu đóng ngoặc thừa');
+}
+assert.equal(cssDepth, 0, 'popup CSS phải đóng đủ các rule');
 
 // 4. Kiểm tra logic popup/popup.js: action-status và message contract
 const popupJs = fs.readFileSync(path.join(ROOT, 'popup', 'popup.js'), 'utf8');
